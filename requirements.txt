@@ -1,0 +1,17 @@
+# RP Client TUI Requirements
+# Install with: pip install -r requirements.txt
+
+# Core TUI framework
+textual>=0.45.0
+
+# Text formatting and rendering
+rich>=13.7.0
+
+# File watching for auto-updates
+watchdog>=3.0.0
+
+# HTTP requests for API calls (Phase 3: DeepSeek)
+requests>=2.31.0
+
+# Standard libraries (usually included, listed for completeness)
+# pathlib, json, datetime, re, subprocess are built-in

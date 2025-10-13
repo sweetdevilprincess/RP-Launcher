@@ -1,0 +1,176 @@
+# RP Claude Code - .gitignore
+
+# ==============================================================================
+# SENSITIVE DATA - NEVER COMMIT THESE
+# ==============================================================================
+
+# API Keys and Secrets
+.env
+.env.local
+.env.*.local
+**/api_key.txt
+**/*_api_key.txt
+**/ANTHROPIC_API_KEY.txt
+**/OPENROUTER_API_KEY.txt
+
+# Personal Configuration
+config/config.json
+**/automation_config.json
+
+# Session Data & History
+**/state/
+state/
+**/*_session_*.json
+**/*.session
+**/conversation_history.json
+**/claude_session_active.flag
+
+# Logs
+*.log
+**/*.log
+logs/
+**/hook.log
+
+# ==============================================================================
+# PERSONAL RP CONTENT (Your stories - decide if you want to share these)
+# ==============================================================================
+
+# Your actual RP folders - comment these out if you want to share your content
+Example RP/
+# Add any other RP folder names here if you have more
+
+# ==============================================================================
+# PYTHON
+# ==============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# ==============================================================================
+# NODE.JS
+# ==============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+
+# ==============================================================================
+# TEMPORARY FILES
+# ==============================================================================
+
+# Flag files
+*.flag
+**/*.flag
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Response files
+**/rp_client_input.txt
+**/rp_client_response.txt
+**/rp_client_ready.flag
+**/rp_client_done.flag
+
+# Counters and trackers
+**/response_counter.txt
+**/counter.txt
+**/entity_tracker.json
+**/trigger_history.json
+
+# ==============================================================================
+# CACHE FILES
+# ==============================================================================
+
+# Sentence transformers cache (if using semantic triggers)
+.cache/
+**/.cache/
+sentence_transformers_cache/
+
+# Model cache
+models/
+*.model
+*.pkl
+*.bin
+
+# ==============================================================================
+# FILES TO INCLUDE (These are safe to share)
+# ==============================================================================
+
+# Keep template/example config files
+!config/config.json.template
+!config/automation_config.json.template
+
+# Keep example RP structure (without content)
+!docs/
+!src/
+!config/templates/
+!config/guidelines/
+
+# Keep WIP test data (these are examples)
+!wip/trigger_system/test_data/
+
+# Keep documentation
+!*.md
+!README.md
+!LICENSE
+
+# ==============================================================================
+# PROJECT SPECIFIC
+# ==============================================================================
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Test outputs
+test_output/
+*.test
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

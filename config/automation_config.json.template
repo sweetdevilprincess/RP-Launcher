@@ -1,0 +1,23 @@
+{
+  "auto_entity_cards": true,
+  "entity_mention_threshold": 2,
+  "auto_story_arc": true,
+  "arc_frequency": 50,
+
+  "trigger_system": {
+    "keyword_matching": {
+      "enabled": true,
+      "case_sensitive": false,
+      "use_word_boundaries": true
+    },
+    "regex_matching": {
+      "enabled": true,
+      "max_patterns_per_file": 10
+    },
+    "semantic_matching": {
+      "enabled": false,
+      "model": "all-MiniLM-L6-v2",
+      "similarity_threshold": 0.7
+    }
+  }
+}

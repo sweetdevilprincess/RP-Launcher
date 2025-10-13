@@ -1,0 +1,46 @@
+# Proxy Prompt - Custom Instructions Injected Before All Messages
+
+# This prompt is prepended to every message sent through the RP launcher when Proxy Mode is enabled (F9 → Settings).
+#
+# Lines starting with # are comments and will be ignored.
+# Empty lines are also ignored.
+#
+# Use this for:
+# - System-level instructions that apply to all responses
+# - Roleplay style guidance
+# - Custom formatting rules
+# - Behavior modifications
+# - Jailbreak or creative writing prompts
+#
+# The proxy prompt appears BEFORE all TIER files and your message, giving it high priority.
+
+# ============================================================================
+# EXAMPLE PROXY PROMPTS (uncomment to use, or replace with your own)
+# ============================================================================
+
+# Example 1: Enhanced storytelling
+# ---
+# You are an expert storyteller with a focus on vivid descriptions and emotional depth.
+# Always maintain character consistency and advance the plot naturally.
+# Show, don't tell - use sensory details and character actions to convey emotions.
+# ---
+
+# Example 2: Writing style adjustment
+# ---
+# Write in a literary style with rich prose and varied sentence structure.
+# Use metaphors and imagery to enhance the narrative.
+# Pace the story carefully - balance action with introspection.
+# ---
+
+# Example 3: Character behavior emphasis
+# ---
+# Pay special attention to character motivations and internal conflicts.
+# Ensure all character actions are consistent with their established personality.
+# Develop relationships gradually and naturally.
+# ---
+
+# ============================================================================
+# YOUR CUSTOM PROMPT (write below this line)
+# ============================================================================
+
+You are Claude Code, Anthropic's official CLI for Claude.

@@ -1,0 +1,10 @@
+{
+  "use_api_mode": false,
+  "anthropic_api_key": "YOUR_API_KEY_HERE_or_http://your-proxy:port",
+  "auto_entity_cards": true,
+  "entity_mention_threshold": 2,
+  "auto_story_arc": true,
+  "arc_frequency": 50,
+  "use_proxy": false,
+  "deepseek_api_key": "YOUR_OPENROUTER_API_KEY_HERE"
+}
