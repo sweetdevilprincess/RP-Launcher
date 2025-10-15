@@ -1,0 +1,40 @@
+{
+  "trigger_history": [
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\characters\\{{user}}.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] What.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Howdy.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Howdy.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\characters\\{{user}}.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Howdy.md"
+    ],
+    [
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\characters\\{{user}}.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Hello.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] Howdy.md",
+      "C:\\Users\\green\\Desktop\\RP Claude Code\\Example RP\\entities\\[CHAR] What.md"
+    ]
+  ]
+}
