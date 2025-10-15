@@ -57,7 +57,7 @@ An advanced roleplay launcher for Claude Code with intelligent automation, promp
 ```bash
 # Clone repository
 git clone https://github.com/sweetdevilprincess/RP-Launcher.git
-cd [Rp-Launcher]
+cd Rp-Launcher
 
 # Install dependencies
 pip install -r requirements.txt
