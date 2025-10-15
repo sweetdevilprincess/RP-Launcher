@@ -1,0 +1,78 @@
+{
+  "genre": "grimdark",
+  "display_name": "Grimdark",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Bleak, morally gray world with no easy answers",
+        "Cynicism and pragmatism over idealism",
+        "Violence and consequences are realistic and brutal",
+        "Hope is fragile and often crushed",
+        "Power corrupts, and survival requires compromise",
+        "Dark humor emerges from harsh reality"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Grinding tension rather than quick action",
+        "Let characters suffer the consequences",
+        "No rushing past the weight of decisions",
+        "Victories are costly and temporary",
+        "Build toward inevitable tragedy or hard-won survival",
+        "Pacing reflects the exhausting struggle"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Cynical and world-weary speech",
+        "Characters say cruel truths",
+        "Gallows humor and bitter observations",
+        "Pragmatism over sentimentality",
+        "Profanity and coarse language fit the world",
+        "No one speaks like a hero from a fairy tale"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Show moral compromises and gray choices",
+        "Violence has realistic consequences",
+        "No deus ex machina rescues",
+        "Characters can fail catastrophically",
+        "Betrayal and cruelty are commonplace",
+        "Small mercies stand out in the darkness"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Visceral descriptions of violence and suffering",
+        "Grim environmental details (mud, blood, decay)",
+        "Physical toll of hardship on characters",
+        "Contrast between beauty and brutality",
+        "Sensory details that emphasize harshness",
+        "Settings reflect moral decay"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't be grimdark for shock value alone",
+        "Avoid making everything meaninglessly bleak",
+        "Don't forget the dark humor element",
+        "Resist making characters cartoonishly evil",
+        "Don't ignore the small human moments",
+        "Avoid confusing grimdark with nihilism"
+      ]
+    }
+  },
+  "highlights": [
+    "Morally gray world with no easy answers",
+    "Realistic consequences and brutal pragmatism",
+    "Dark humor from harsh reality",
+    "Small mercies matter in the darkness"
+  ]
+}

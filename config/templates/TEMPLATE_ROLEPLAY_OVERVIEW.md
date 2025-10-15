@@ -15,6 +15,10 @@
 ## Story Overview
 
 **Genre**: [Primary genre] / [Secondary genre]
+<!-- This field is used for automatic narrative template selection (Phase 3.1) -->
+<!-- Supported genres: slice-of-life, grimdark, dark-romance, action, mystery, thriller, horror, comedy -->
+<!-- Format: "Primary / Secondary" or just "Primary" (e.g., "Dark Romance / Thriller" or "Slice of Life") -->
+<!-- Templates auto-load from config/templates/prompts/ - customize via state/automation_config.json -->
 **Setting**: [Time period, location, world type]
 **Tone**: [Overall tone/atmosphere]
 

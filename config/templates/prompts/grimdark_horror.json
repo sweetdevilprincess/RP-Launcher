@@ -1,0 +1,80 @@
+{
+  "genre": "grimdark_horror",
+  "display_name": "Grimdark Horror",
+  "composite": true,
+  "base_genres": ["grimdark", "horror"],
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Bleak, morally gray world corrupted by horror",
+        "Dread builds in an already hopeless setting",
+        "Cynicism meets existential terror",
+        "The horrible is made worse by human cruelty",
+        "Violation of what little safety remains",
+        "Hope is crushed by both horror and harsh reality",
+        "Dark humor emerges from grotesque absurdity"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Grinding tension punctuated by horror",
+        "Slow build of dread in already grim circumstances",
+        "Let characters suffer consequences of both horror and pragmatism",
+        "No rushing past weight of terrible choices",
+        "Horror escalates in a world already brutal",
+        "Recovery periods only reveal more bleakness",
+        "Pacing reflects exhausting struggle against darkness"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Cynical, world-weary speech about terrible things",
+        "Gallows humor about horror and suffering",
+        "Characters say cruel truths about dark reality",
+        "Denial breaks down into grim acceptance",
+        "Pragmatism about horrific circumstances",
+        "Speech fragments under both fear and despair",
+        "No heroic speeches, only bitter observations"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Horror violates an already compromised world",
+        "Moral compromises made in face of supernatural threat",
+        "Realistic consequences for both horror and violence",
+        "Characters can fail catastrophically in multiple ways",
+        "Horror is made more terrible by human evil",
+        "No clean victories over either darkness",
+        "Small mercies stand out against compounded darkness"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Visceral descriptions of horror and brutality",
+        "Grim environmental details (decay, corruption, wrongness)",
+        "Physical and psychological toll of combined threats",
+        "Sensory details that create both horror and harshness",
+        "Contrast between natural brutality and supernatural horror",
+        "Settings reflect both moral and physical corruption",
+        "Body horror and realistic violence intertwined"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't be dark just for shock value",
+        "Avoid making everything meaninglessly bleak",
+        "Don't forget dark humor element",
+        "Resist making horror cartoonish in grim setting",
+        "Don't lose horror atmosphere in grim pragmatism",
+        "Avoid confusing grimdark horror with pure nihilism",
+        "Don't desensitize through constant brutality"
+      ]
+    }
+  }
+}

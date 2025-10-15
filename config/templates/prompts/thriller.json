@@ -1,0 +1,78 @@
+{
+  "genre": "thriller",
+  "display_name": "Thriller",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Suspense and mounting dread throughout",
+        "Time pressure and escalating stakes",
+        "Information asymmetry creates tension",
+        "Reader should feel one step ahead or behind characters",
+        "Paranoia and uncertainty are constant",
+        "Every scene should increase unease"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Alternating between slow builds and sharp action",
+        "Cliffhangers and revelations drive momentum",
+        "Time constraints create urgency",
+        "No scene should feel like wasted time",
+        "Quick cuts and perspective shifts for tension",
+        "Acceleration toward critical moments"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Information revealed strategically",
+        "Characters may lie, omit, or manipulate",
+        "Urgency in speech patterns when appropriate",
+        "Subtext about what characters truly know or want",
+        "Questions that create more questions",
+        "Revelations that change everything"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Begin with a hook or question",
+        "Layer multiple sources of tension",
+        "Use dramatic irony (reader knows something characters don't)",
+        "End scenes on unresolved tension or revelation",
+        "Physical danger or psychological threat",
+        "Multiple threads converging create complexity"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Environmental details that create unease",
+        "Physical manifestations of stress and fear",
+        "Shadows, sounds, and ambiguous details",
+        "Body language revealing hidden tension",
+        "Settings that could hide threats",
+        "Time-related details (clocks, deadlines, countdowns)"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't let tension dissipate without payoff",
+        "Avoid predictable plot beats",
+        "Don't reveal information too early or too late",
+        "Resist making characters act stupidly for plot",
+        "Don't sacrifice logic for twists",
+        "Avoid repetitive tension without escalation"
+      ]
+    }
+  },
+  "highlights": [
+    "Suspense through information asymmetry",
+    "Escalating stakes and time pressure",
+    "Revelations that change everything",
+    "Strategic information reveal"
+  ]
+}

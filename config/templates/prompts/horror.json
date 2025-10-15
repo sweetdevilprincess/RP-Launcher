@@ -1,0 +1,78 @@
+{
+  "genre": "horror",
+  "display_name": "Horror",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Dread and unease that builds gradually",
+        "The unknown and unknowable create fear",
+        "Violation of safety, normalcy, or sanity",
+        "Atmosphere of wrongness and corruption",
+        "Psychological or visceral terror (or both)",
+        "Fear comes from what's suggested, not just shown"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Slow build of dread punctuated by terror",
+        "Quiet moments amplify later horror",
+        "Escalation from unease to outright fear",
+        "Don't rush the atmosphere building",
+        "Horror peaks should feel earned",
+        "Recovery periods only increase vulnerability"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Denial and rationalization before acceptance",
+        "Characters may sound increasingly unstable",
+        "What isn't said can be more frightening",
+        "Dialogue breaks down under extreme fear",
+        "Unreliable narration and perception",
+        "Whispers, stammering, and fragmented speech"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Establish normalcy before violation",
+        "Use sensory details to create wrongness",
+        "Isolation and helplessness amplify horror",
+        "The mundane becomes threatening",
+        "Reveal horror gradually, not all at once",
+        "Leave some things to imagination"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Sensory details that create unease (smells, sounds, textures)",
+        "Distortions of perception and reality",
+        "Physical manifestations of fear (sweat, trembling, nausea)",
+        "Environmental details that feel wrong or uncanny",
+        "Visceral descriptions when horror manifests",
+        "Darkness, shadows, and liminal spaces"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't rely solely on jump scares or shock",
+        "Avoid over-explaining the horror",
+        "Don't make threats cartoonish or silly",
+        "Resist resolving horror too neatly",
+        "Don't forget psychological dimension",
+        "Avoid desensitizing through overuse"
+      ]
+    }
+  },
+  "highlights": [
+    "Dread builds through atmosphere and suggestion",
+    "Unknown and unknowable create lasting fear",
+    "Violation of safety and sanity",
+    "What's suggested can be more frightening than what's shown"
+  ]
+}

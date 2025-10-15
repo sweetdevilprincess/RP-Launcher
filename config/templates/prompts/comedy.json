@@ -1,0 +1,78 @@
+{
+  "genre": "comedy",
+  "display_name": "Comedy",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Light-hearted and playful energy",
+        "Humor emerges from character and situation",
+        "Stakes can be serious but tone is comedic",
+        "Absurdity and exaggeration are tools",
+        "Timing and rhythm create comedic effect",
+        "Joy and laughter are central goals"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Quick wit and snappy dialogue",
+        "Comedic timing through beat and pause",
+        "Build-up to punchlines and payoffs",
+        "Rapid-fire exchanges or slow burns",
+        "Rule of threes for comedic structure",
+        "Momentum keeps energy high"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Witty banter and wordplay",
+        "Misunderstandings and miscommunication",
+        "Character-specific humor voices",
+        "Callbacks and running gags",
+        "Deadpan delivery or over-the-top reactions",
+        "Subverted expectations in dialogue"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Set up situations with comedic potential",
+        "Physical comedy and visual gags",
+        "Escalation of absurdity",
+        "Contrast and juxtaposition for humor",
+        "Characters react authentically to ridiculous situations",
+        "Payoffs for established setups"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Exaggerated details for comedic effect",
+        "Physical reactions and expressions",
+        "Incongruous or absurd imagery",
+        "Sensory details that amplify humor",
+        "Body language and comedic physicality",
+        "Settings that enhance comedic situations"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't explain jokes or over-telegraph punchlines",
+        "Avoid making humor mean-spirited without purpose",
+        "Don't sacrifice character consistency for jokes",
+        "Resist forcing humor into every moment",
+        "Don't rely on the same comedic beats repeatedly",
+        "Avoid humor that undercuts genuine emotional moments"
+      ]
+    }
+  },
+  "highlights": [
+    "Humor from character and situation",
+    "Timing and rhythm create comedic effect",
+    "Absurdity and exaggeration as tools",
+    "Joy and laughter are central"
+  ]
+}

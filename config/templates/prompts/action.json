@@ -1,0 +1,78 @@
+{
+  "genre": "action",
+  "display_name": "Action",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "High energy and kinetic momentum",
+        "Clear stakes and immediate danger",
+        "Adrenaline and intensity drive the narrative",
+        "Competence and capability on display",
+        "Physical conflict is visceral and exciting",
+        "Tension through physical peril"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Fast-paced action sequences with clarity",
+        "Short, punchy sentences during intense moments",
+        "Build tension before action explodes",
+        "Allow brief recovery periods between action",
+        "Escalating scale and stakes",
+        "Momentum should feel relentless"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Quick, efficient dialogue during action",
+        "Banter and one-liners for character personality",
+        "Commands and reactions rather than exposition",
+        "Characters talk while doing, not instead of doing",
+        "Tension through verbal sparring",
+        "Silence can be as powerful as speech"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Establish geography and stakes before action",
+        "Choreograph action for clarity and impact",
+        "Use environment in creative ways",
+        "Show competence through capability",
+        "Action sequences have clear beginning, middle, end",
+        "Physical consequences matter (injuries, exhaustion)"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Kinetic descriptions of movement and impact",
+        "Sensory overload during intense action",
+        "Spatial awareness and positioning",
+        "Physical sensations (pain, adrenaline, exhaustion)",
+        "Environmental details that affect action",
+        "Weapons, vehicles, and tools described functionally"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't sacrifice clarity for style in action scenes",
+        "Avoid making characters invulnerable",
+        "Don't ignore physics and logic entirely",
+        "Resist making every scene an action scene",
+        "Don't forget character reactions and emotions",
+        "Avoid repetitive action beats"
+      ]
+    }
+  },
+  "highlights": [
+    "High energy with clear choreography",
+    "Competence on display",
+    "Physical consequences matter",
+    "Escalating stakes and momentum"
+  ]
+}

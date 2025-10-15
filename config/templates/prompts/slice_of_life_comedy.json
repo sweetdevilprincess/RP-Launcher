@@ -1,0 +1,80 @@
+{
+  "genre": "slice_of_life_comedy",
+  "display_name": "Slice of Life / Comedy",
+  "composite": true,
+  "base_genres": ["slice_of_life", "comedy"],
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Warm, gentle humor in everyday moments",
+        "Light-hearted and playful without forcing jokes",
+        "Find comedy in mundane situations and character quirks",
+        "Comfortable atmosphere with natural laughter",
+        "Emotional authenticity doesn't preclude humor",
+        "Joy emerges from ordinary interactions",
+        "Cozy, inviting feeling overall"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Relaxed pace that allows humor to breathe",
+        "Time for comedic beats and character reactions",
+        "No rush to the next joke or plot point",
+        "Natural rhythm of conversation with comedic timing",
+        "Extended scenes where humor builds organically",
+        "Comfortable silences can set up comedy",
+        "Slow builds to gentle payoffs"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Natural, conversational with character-specific humor",
+        "Gentle teasing and affectionate banter",
+        "Witty observations about everyday life",
+        "Misunderstandings that feel authentic",
+        "Running gags that emerge from character dynamics",
+        "Humor in small talk and casual exchanges",
+        "Comfortable rhythm of real conversations"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Begin with sensory details and gentle atmosphere",
+        "Comedy emerges from ordinary activities done wrong (or right)",
+        "Characters doing mundane things in character-specific ways",
+        "Internal thoughts can add comedic layer",
+        "Physical comedy is understated and realistic",
+        "Scenes can be funny without being about anything important",
+        "Transitions are gentle, sometimes with comedic beats"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Rich sensory details with room for humor",
+        "Physical reactions that are endearing or funny",
+        "Small visual details that create warmth and comedy",
+        "Food and drink with comedic potential",
+        "Comfortable spaces with character quirks visible",
+        "Seasonal details that enhance mood and humor",
+        "Body language and expressions for comedic effect"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't force jokes into every moment",
+        "Avoid sacrificing character consistency for punchlines",
+        "Don't make humor mean-spirited",
+        "Resist rushing past the gentle atmosphere for comedy",
+        "Don't neglect sensory and atmospheric details",
+        "Avoid making characters caricatures for comedy",
+        "Don't let comedy undermine genuine emotional moments"
+      ]
+    }
+  }
+}

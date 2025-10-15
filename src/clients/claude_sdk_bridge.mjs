@@ -101,6 +101,14 @@ function sendCacheStats(usage) {
     });
 }
 
+// Thinking mode presets (matching Claude Code CLI)
+const THINKING_MODES = {
+    disabled: 0,           // No extended thinking
+    think: 4000,           // Quick reasoning
+    megathink: 10000,      // Standard reasoning
+    ultrathink: 31999,     // Maximum reasoning
+};
+
 /**
  * Process a query using Claude Code SDK
  */
@@ -110,6 +118,8 @@ async function processQuery(request) {
         cached_context = null,
         session_id = null,
         cwd = null,
+        thinking_mode = 'megathink',
+        thinking_budget = null,
         options = {}
     } = request;
 
@@ -131,6 +141,19 @@ async function processQuery(request) {
             fullPrompt = message;
         }
 
+        // Determine thinking budget
+        let finalBudget;
+        if (thinking_budget !== null && thinking_budget !== undefined) {
+            // Custom budget provided
+            finalBudget = thinking_budget;
+        } else if (thinking_mode in THINKING_MODES) {
+            // Use preset
+            finalBudget = THINKING_MODES[thinking_mode];
+        } else {
+            // Unknown mode, default to megathink
+            finalBudget = THINKING_MODES.megathink;
+        }
+
         // Build SDK options
         const sdkOptions = {
             cwd: cwd || process.cwd(),
@@ -138,10 +161,13 @@ async function processQuery(request) {
             resume: session_id || currentSessionId,
             // Continue conversation
             continue: !!currentSessionId,
-            // Enable extended thinking for better context retention
-            maxThinkingTokens: 10000,
             ...options
         };
+
+        // Add thinking config only if budget > 0
+        if (finalBudget > 0) {
+            sdkOptions.maxThinkingTokens = finalBudget;
+        }
 
         sendStatus('querying', {
             message: 'Sending to Claude Code...',

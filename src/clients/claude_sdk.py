@@ -191,6 +191,8 @@ class ClaudeSDKClient:
         cached_context: Optional[str] = None,
         session_id: Optional[str] = None,
         stream: bool = True,
+        thinking_mode: str = "megathink",
+        thinking_budget: Optional[int] = None,
         **options
     ) -> Iterator[str]:
         """
@@ -201,6 +203,8 @@ class ClaudeSDKClient:
             cached_context: Context to cache (TIER_1 files) - will be cached by Claude
             session_id: Session ID to resume (optional, will use current session if None)
             stream: If True, yields chunks as they arrive. If False, returns full response.
+            thinking_mode: Thinking mode preset ("disabled", "think", "megathink", "ultrathink")
+            thinking_budget: Custom thinking token budget (overrides thinking_mode if provided)
             **options: Additional options to pass to Claude Code SDK
 
         Yields:
@@ -222,6 +226,8 @@ class ClaudeSDKClient:
             cached_context=cached_context,
             session_id=session_id or self.session_id,
             cwd=str(self.cwd),
+            thinking_mode=thinking_mode,
+            thinking_budget=thinking_budget,
             options=options
         )
 

@@ -38,6 +38,14 @@ from rich.text import Text
 from rich.markdown import Markdown
 from rich.panel import Panel
 
+# Import write queue for efficient file operations
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fs_write_queue import get_write_queue
+from src.automation.core import get_response_count as core_get_response_count
+from src.file_manager import FileManager
+
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -79,28 +87,31 @@ def get_chapter_info(state_file: Path) -> tuple[str, str, str]:
 
 
 def get_active_characters(rp_dir: Path) -> list[str]:
-    """Get active characters from session_triggers.txt"""
-    triggers_file = rp_dir / "state" / "session_triggers.txt"
-    content = read_file(triggers_file)
+    """Get active characters from session_triggers.json (or .txt with auto-migration)"""
+    try:
+        fm = FileManager(rp_dir)
+        characters = fm.read_session_triggers()
+        return characters if characters else ["None"]
+    except Exception:
+        # Fallback to old parsing if FileManager fails
+        triggers_file = rp_dir / "state" / "session_triggers.txt"
+        content = read_file(triggers_file)
 
-    characters = []
-    for line in content.split('\n'):
-        if line.strip() and not line.startswith('#'):
-            # Format: "- Silas (Triggers: Silas, him, boyfriend)"
-            if '(' in line:
-                name = line.split('(')[0].replace('-', '').strip()
-                if name:
-                    characters.append(name)
+        characters = []
+        for line in content.split('\n'):
+            if line.strip() and not line.startswith('#'):
+                # Format: "- Silas (Triggers: Silas, him, boyfriend)"
+                if '(' in line:
+                    name = line.split('(')[0].replace('-', '').strip()
+                    if name:
+                        characters.append(name)
 
-    return characters if characters else ["None"]
+        return characters if characters else ["None"]
 
 
 def get_response_count(counter_file: Path) -> int:
-    """Get current response count"""
-    try:
-        return int(read_file(counter_file).strip())
-    except:
-        return 0
+    """Get current response count (wrapper for core function)"""
+    return core_get_response_count(counter_file)
 
 
 def get_arc_progress(counter_file: Path, arc_frequency: int = 50) -> tuple[int, int, float]:
@@ -231,7 +242,7 @@ class SceneNotesOverlay(ModalScreen):
 
 
 class EntitiesOverlay(ModalScreen):
-    """Overlay for viewing tracked entities (Ctrl+E)"""
+    """Overlay for viewing entities from entities/ directory"""
 
     BINDINGS = [("escape", "dismiss", "Close")]
 
@@ -240,22 +251,41 @@ class EntitiesOverlay(ModalScreen):
         self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
-        tracker_file = self.rp_dir / "state" / "entity_tracker.json"
-        entities = read_json(tracker_file).get("entities", {})
+        # Use EntityManager to get all indexed entities
+        try:
+            from src.entity_manager import EntityManager
+            entity_mgr = EntityManager(self.rp_dir)
 
-        content = "# 🎭 Tracked Entities\n\n"
+            content = "# 🎭 Entities\n\n"
 
-        if not entities:
-            content += "*No entities tracked yet.*"
-        else:
-            content += "| Name | Mentions | Card | Last Chapter |\n"
-            content += "|------|----------|------|-------------|\n"
+            if not entity_mgr.entities:
+                content += "*No entity cards found in entities/ directory.*\n"
+                content += "*Create entity cards with [CHAR], [LOC], or [ORG] tags.*"
+            else:
+                # Group by type
+                by_type = entity_mgr.entities_by_type
 
-            for name, data in sorted(entities.items(), key=lambda x: x[1].get('mentions', 0), reverse=True):
-                mentions = data.get('mentions', 0)
-                has_card = "✅" if data.get('card_created', False) else "⏳"
-                last_chapter = data.get('last_chapter', '?')
-                content += f"| {name} | {mentions} | {has_card} | {last_chapter} |\n"
+                for entity_type in ['character', 'location', 'organization', 'unknown']:
+                    entities_of_type = by_type.get(entity_type, [])
+                    if entities_of_type:
+                        type_emoji = {
+                            'character': '👤',
+                            'location': '📍',
+                            'organization': '🏢',
+                            'unknown': '❓'
+                        }.get(entity_type, '📄')
+
+                        content += f"\n## {type_emoji} {entity_type.title()}s ({len(entities_of_type)})\n\n"
+
+                        for name in sorted(entities_of_type):
+                            entity = entity_mgr.entities[name]
+                            triggers = len(entity.triggers)
+                            content += f"- **{name}** ({triggers} triggers)\n"
+
+                content += f"\n**Total**: {len(entity_mgr.entities)} entities, {len(entity_mgr.trigger_map)} trigger words"
+
+        except Exception as e:
+            content = f"# 🎭 Entities\n\n*Error loading entities: {e}*"
 
         with Container(id="overlay-container"):
             yield Static("🎭 Entities", id="overlay-title")
@@ -302,7 +332,7 @@ class StatusOverlay(ModalScreen):
 
     def compose(self) -> ComposeResult:
         # Read status info
-        counter_file = self.rp_dir / "state" / "response_counter.txt"
+        counter_file = self.rp_dir / "state" / "response_counter.json"
         config_file = self.rp_dir / "state" / "automation_config.json"
         log_file = self.rp_dir / "state" / "hook.log"
 
@@ -458,10 +488,11 @@ class SettingsScreen(ModalScreen):
     def save_config(self, config: dict) -> bool:
         """Save configuration to global config file"""
         try:
-            self.config_file.write_text(
-                json.dumps(config, indent=2),
-                encoding='utf-8'
-            )
+            # Use write queue for efficient config saves
+            write_queue = get_write_queue()
+            write_queue.write_json(self.config_file, config, indent=2)
+            # Flush immediately for settings to ensure they're saved
+            write_queue.flush()
             return True
         except Exception as e:
             self.app.notify(f"Error saving config: {e}", severity="error")
@@ -626,7 +657,7 @@ class ContextPanel(Static):
     def refresh_context(self) -> None:
         """Update context display"""
         state_file = self.rp_dir / "state" / "current_state.md"
-        counter_file = self.rp_dir / "state" / "response_counter.txt"
+        counter_file = self.rp_dir / "state" / "response_counter.json"
 
         chapter, timestamp, location = get_chapter_info(state_file)
         active_chars = get_active_characters(self.rp_dir)
@@ -861,11 +892,14 @@ class RPClientApp(App):
     def __init__(self, rp_dir: Path):
         super().__init__()
         self.rp_dir = rp_dir
-        self.input_file = rp_dir / "state" / "rp_client_input.txt"
-        self.response_file = rp_dir / "state" / "rp_client_response.txt"
-        self.ready_flag = rp_dir / "state" / "rp_client_ready.flag"
-        self.done_flag = rp_dir / "state" / "rp_client_done.flag"
+        self.state_dir = rp_dir / "state"
+        self.input_file = self.state_dir / "rp_client_input.json"
+        self.response_file = self.state_dir / "rp_client_response.json"
+        self.ready_flag = self.state_dir / "rp_client_ready.flag"
+        self.done_flag = self.state_dir / "rp_client_done.flag"
+        self.tui_active_flag = self.state_dir / "tui_active.flag"
         self.waiting_for_response = False
+        self.file_manager = FileManager(rp_dir)
 
     def compose(self) -> ComposeResult:
         """Create the UI layout"""
@@ -884,6 +918,12 @@ class RPClientApp(App):
 
     def on_mount(self) -> None:
         """Initialize app"""
+        # Create TUI active flag (signals bridge that TUI is running)
+        try:
+            self.tui_active_flag.touch()
+        except Exception as e:
+            print(f"Warning: Could not create TUI active flag: {e}")
+
         self.query_one(ChatDisplay).add_message(
             "System",
             "RP Client TUI started. Type your message and press Ctrl+Enter to send (Enter for new line)."
@@ -891,6 +931,26 @@ class RPClientApp(App):
 
         # Watch for response file
         self.set_interval(0.5, self.check_for_response)
+
+    def on_unmount(self) -> None:
+        """Cleanup when app is shutting down"""
+        # Remove TUI active flag (signals bridge to shut down)
+        try:
+            self.tui_active_flag.unlink(missing_ok=True)
+        except Exception as e:
+            print(f"Warning: Could not remove TUI active flag: {e}")
+
+    def action_quit(self) -> None:
+        """Override quit to ensure cleanup"""
+        # Cleanup flags before quitting
+        try:
+            self.tui_active_flag.unlink(missing_ok=True)
+            self.ready_flag.unlink(missing_ok=True)
+            self.done_flag.unlink(missing_ok=True)
+        except Exception:
+            pass
+        # Call parent quit
+        super().action_quit()
 
     def action_submit_message(self) -> None:
         """Handle Ctrl+J (Ctrl+Enter) - check if TextArea is focused first"""
@@ -914,9 +974,13 @@ class RPClientApp(App):
         # Add to chat display
         self.query_one(ChatDisplay).add_message("You", message)
 
-        # Write to file
-        self.input_file.write_text(message, encoding='utf-8')
-        self.ready_flag.touch()
+        # Write to file (JSON format)
+        try:
+            self.file_manager.write_ipc_input(message, self.state_dir)
+            self.ready_flag.touch()
+        except Exception as e:
+            self.show_status(f"❌ Error writing input: {e}")
+            return
 
         # Clear input
         input_area.clear()
@@ -931,18 +995,23 @@ class RPClientApp(App):
             return
 
         if self.done_flag.exists():
-            # Read response
-            response = read_file(self.response_file)
+            # Read response (JSON format with fallback to .txt)
+            try:
+                response = self.file_manager.read_ipc_response(self.state_dir)
+            except Exception as e:
+                response = f"Error reading response: {e}"
 
             # Add to chat
             if response:
                 self.query_one(ChatDisplay).add_message("Claude", response)
 
-            # Clean up
+            # Clean up (handle both .json and .txt files)
             self.done_flag.unlink(missing_ok=True)
             self.ready_flag.unlink(missing_ok=True)
             self.response_file.unlink(missing_ok=True)
+            (self.state_dir / "rp_client_response.txt").unlink(missing_ok=True)  # Old format
             self.input_file.unlink(missing_ok=True)
+            (self.state_dir / "rp_client_input.txt").unlink(missing_ok=True)  # Old format
 
             self.waiting_for_response = False
             self.show_status("✅ Response received")

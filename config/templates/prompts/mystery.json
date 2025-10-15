@@ -1,0 +1,78 @@
+{
+  "genre": "mystery",
+  "display_name": "Mystery",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Intrigue and intellectual puzzle-solving",
+        "Clues and red herrings layered throughout",
+        "Sense that truth is hidden but discoverable",
+        "Atmosphere of investigation and deduction",
+        "Questions accumulate and interweave",
+        "Satisfaction comes from revelation and understanding"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Methodical investigation with breakthrough moments",
+        "Time for observation and deduction",
+        "Revelations create new questions",
+        "Building momentum toward the solution",
+        "False conclusions and corrections",
+        "Pacing allows reader to solve alongside characters"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Questions that probe and reveal",
+        "Characters may lie or withhold information",
+        "Interviews and interrogations",
+        "Details that seem insignificant become crucial",
+        "Theories discussed and tested",
+        "Subtext about what people aren't saying"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Present clues fairly to the reader",
+        "Layer information that takes on new meaning later",
+        "Investigation scenes show process and thinking",
+        "Red herrings should be believable",
+        "Multiple suspects and possibilities",
+        "Physical evidence and witness accounts"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Details that may be clues",
+        "Character observations and body language",
+        "Environmental details that tell a story",
+        "Inconsistencies and anomalies",
+        "Timelines and spatial relationships",
+        "Objects and their significance"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't withhold crucial information unfairly",
+        "Avoid solutions that come from nowhere",
+        "Don't make red herrings too obvious",
+        "Resist having characters be unrealistically obtuse",
+        "Don't forget to resolve all the clues planted",
+        "Avoid making the solution feel random"
+      ]
+    }
+  },
+  "highlights": [
+    "Clues and deduction drive the narrative",
+    "Fair play with reader participation",
+    "Revelations recontextualize earlier information",
+    "Methodical investigation with satisfying resolution"
+  ]
+}

@@ -15,6 +15,14 @@ import anthropic
 class ClaudeAPIClient:
     """Claude API client with intelligent prompt caching."""
 
+    # Thinking mode presets (matching Claude Code CLI)
+    THINKING_MODES = {
+        "disabled": 0,           # No extended thinking
+        "think": 4000,           # Quick reasoning
+        "megathink": 10000,      # Standard reasoning
+        "ultrathink": 31999,     # Maximum reasoning
+    }
+
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the Claude API client.
 
@@ -38,7 +46,8 @@ class ClaudeAPIClient:
         conversation_history: Optional[List[Dict[str, Any]]] = None,
         max_tokens: int = 8192,
         temperature: float = 1.0,
-        thinking_budget: int = 10000
+        thinking_mode: str = "megathink",
+        thinking_budget: Optional[int] = None
     ) -> Dict[str, Any]:
         """Send a message to Claude with prompt caching and extended thinking.
 
@@ -49,7 +58,8 @@ class ClaudeAPIClient:
             conversation_history: Previous messages in format [{"role": "user"|"assistant", "content": "..."}]
             max_tokens: Maximum tokens in response
             temperature: Sampling temperature (0-1)
-            thinking_budget: Tokens allocated for extended thinking (default 10000)
+            thinking_mode: Thinking mode preset ("disabled", "think", "megathink", "ultrathink")
+            thinking_budget: Custom thinking token budget (overrides thinking_mode if provided)
 
         Returns:
             Dict with:
@@ -82,18 +92,35 @@ class ClaudeAPIClient:
             "content": user_message
         })
 
-        # Make API call with extended thinking
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            thinking={
+        # Determine thinking budget
+        if thinking_budget is not None:
+            # Custom budget provided
+            final_budget = thinking_budget
+        elif thinking_mode in self.THINKING_MODES:
+            # Use preset
+            final_budget = self.THINKING_MODES[thinking_mode]
+        else:
+            # Unknown mode, default to megathink
+            final_budget = self.THINKING_MODES["megathink"]
+
+        # Build API call parameters
+        api_params = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "system": system_messages if system_messages else None,
+            "messages": messages
+        }
+
+        # Add thinking config only if budget > 0
+        if final_budget > 0:
+            api_params["thinking"] = {
                 "type": "enabled",
-                "budget_tokens": thinking_budget
-            },
-            system=system_messages if system_messages else None,
-            messages=messages
-        )
+                "budget_tokens": final_budget
+            }
+
+        # Make API call
+        response = self.client.messages.create(**api_params)
 
         # Extract response details
         # Handle multiple content blocks (thinking + text)

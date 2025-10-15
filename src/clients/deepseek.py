@@ -24,6 +24,11 @@ class MissingAPIKeyError(DeepSeekError):
     pass
 
 
+class InsufficientBalanceError(DeepSeekError):
+    """Raised when OpenRouter account balance is too low (402 error)."""
+    pass
+
+
 def _load_api_key(rp_dir: Optional[Path] = None) -> str:
     """Load API key from environment, config, or secrets.json.
 
@@ -147,8 +152,22 @@ def call_deepseek(
             json=payload,
             timeout=timeout
         )
+
+        # Check for insufficient balance (402)
+        if response.status_code == 402:
+            raise InsufficientBalanceError(
+                "OpenRouter account balance is too low or negative. "
+                "Please add credits at https://openrouter.ai/credits"
+            )
+
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
+        # Check if it's a 402 that wasn't caught above
+        if hasattr(e, 'response') and e.response.status_code == 402:
+            raise InsufficientBalanceError(
+                "OpenRouter account balance is too low or negative. "
+                "Please add credits at https://openrouter.ai/credits"
+            )
         raise DeepSeekError(f"API returned error: {e}")
 
     # Parse response
