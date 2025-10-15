@@ -8,7 +8,19 @@ cd "C:\Users\green\Desktop\RP Claude Code"
 pip install -r requirements.txt
 ```
 
-### Step 2: Launch!
+### Step 2: Create Your First RP
+
+Use the quick setup script to create a complete RP:
+
+```bash
+python setup/quick_setup.py "My RP Name"
+```
+
+This creates a complete RP folder with templates, character sheets, and all required files.
+
+**Alternative**: Run `python launch_rp_tui.py` and select **Create New RP** for manual setup.
+
+### Step 3: Launch!
 
 **🎯 EASIEST WAY - Just double-click:**
 - `launch_rp_tui.bat`
@@ -26,16 +38,16 @@ If you prefer to launch manually:
 **Terminal 1 (Bridge):**
 ```bash
 cd "C:\Users\green\Desktop\RP Claude Code"
-python tui_bridge.py "Example RP"
+python tui_bridge.py "My RP Name"
 ```
 
 **Terminal 2 (TUI):**
 ```bash
 cd "C:\Users\green\Desktop\RP Claude Code"
-python rp_client_tui.py "Example RP"
+python rp_client_tui.py "My RP Name"
 ```
 
-### Step 3: Start RPing!
+### Step 4: Start RPing!
 
 1. Type your message in the TUI (Enter for new lines)
 2. Press `Ctrl+Enter` to send

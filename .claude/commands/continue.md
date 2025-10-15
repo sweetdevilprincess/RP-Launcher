@@ -1,4 +1,4 @@
-Follow CLAUDE.md for this session.
+Follow config/CLAUDE.md for this session.
 
 ## Session Context (from last session end):
 

@@ -322,14 +322,19 @@ class AgentCoordinator:
         """
         return self.results.get(agent_id)
 
-    def save_to_cache(self, cache_file: Path, response_number: int) -> None:
+    def save_to_cache(self, cache_file: Path, response_number: int) -> dict:
         """Save agent results to JSON cache file
 
         Args:
             cache_file: Path to agent_analysis.json
             response_number: Current response number
+
+        Returns:
+            Dict with timing stats including write_ms
         """
         try:
+            write_start = time.perf_counter()
+
             stats = self.get_stats()
 
             # Build JSON cache structure
@@ -386,12 +391,21 @@ class AgentCoordinator:
             with open(cache_file, 'w', encoding='utf-8') as f:
                 json.dump(cache_data, f, indent=2)
 
-            log_to_file(self.log_file, f"[AgentCoordinator] Saved JSON cache to {cache_file} ({stats['successful']}/{stats['agents_executed']} agents)")
+            write_time = (time.perf_counter() - write_start) * 1000
+
+            log_to_file(self.log_file, f"[AgentCoordinator] Saved JSON cache to {cache_file} ({stats['successful']}/{stats['agents_executed']} agents) in {write_time:.1f}ms")
+
+            return {
+                'write_ms': round(write_time, 1),
+                'agents_ok': stats['successful'],
+                'agents_total': stats['agents_executed']
+            }
 
         except Exception as e:
             log_to_file(self.log_file, f"[AgentCoordinator] Error saving cache: {e}")
             import traceback
             log_to_file(self.log_file, traceback.format_exc())
+            return {'write_ms': 0, 'agents_ok': 0, 'agents_total': 0}
 
     def load_from_cache(self, cache_file: Path) -> Optional[str]:
         """Load JSON cache and convert to condensed prompt format

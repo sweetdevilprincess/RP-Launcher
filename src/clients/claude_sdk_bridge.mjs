@@ -104,9 +104,11 @@ function sendCacheStats(usage) {
 // Thinking mode presets (matching Claude Code CLI)
 const THINKING_MODES = {
     disabled: 0,           // No extended thinking
-    think: 4000,           // Quick reasoning
-    megathink: 10000,      // Standard reasoning
-    ultrathink: 31999,     // Maximum reasoning
+    think: 5000,           // Quick planning, simple refactoring
+    'think hard': 10000,   // Feature design, debugging
+    megathink: 10000,      // Standard reasoning (same as think hard)
+    'think harder': 25000, // Architecture decisions, complex bugs
+    ultrathink: 31999,     // Maximum reasoning - system design
 };
 
 /**

@@ -6,5 +6,8 @@
   "auto_story_arc": true,
   "arc_frequency": 50,
   "use_proxy": false,
-  "deepseek_api_key": "YOUR_OPENROUTER_API_KEY_HERE"
+  "deepseek_api_key": "sk-or-v1-YOUR_OPENROUTER_API_KEY_HERE",
+  "openrouter_model": "deepseek/deepseek-chat-v3.1",
+  "check_for_updates": true,
+  "update_check_interval": 86400
 }
