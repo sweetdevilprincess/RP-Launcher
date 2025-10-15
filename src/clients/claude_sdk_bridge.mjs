@@ -138,6 +138,8 @@ async function processQuery(request) {
             resume: session_id || currentSessionId,
             // Continue conversation
             continue: !!currentSessionId,
+            // Enable extended thinking for better context retention
+            maxThinkingTokens: 10000,
             ...options
         };
 

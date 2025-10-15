@@ -74,6 +74,24 @@ from src.clients import deepseek as deepseek_client
 from src.clients.claude_api import ClaudeAPIClient, ConversationManager, load_api_key
 from src.clients.claude_sdk import ClaudeSDKClient
 
+# Import enhanced trigger system
+from src.trigger_system.trigger_system import TriggerMatcher
+
+# Import file change tracker
+from src.file_change_tracker import FileChangeTracker
+
+# Import write queue
+from src.fs_write_queue import get_write_queue, flush_all_writes, shutdown_write_queue
+
+
+# =============================================================================
+# WRITE QUEUE INITIALIZATION
+# =============================================================================
+
+# Initialize global write queue with 500ms debounce
+# This reduces disk I/O by batching rapid writes
+_write_queue = get_write_queue(debounce_ms=500, verbose=False)
+
 
 # =============================================================================
 # AUTOMATION MODULE - Replaces bash hook functionality
@@ -121,7 +139,7 @@ def increment_counter(counter_file: Path, config: dict, log_file: Path) -> int:
             count = 0
 
     count += 1
-    counter_file.write_text(str(count), encoding='utf-8')
+    _write_queue.write_text(counter_file, str(count), encoding='utf-8')
 
     log_to_file(log_file, f"Response counter: {count}")
 
@@ -212,7 +230,7 @@ def calculate_time(message: str, timing_file: Path, state_file: Path, log_file: 
 **Note**: Review and adjust for modifiers (fast/slow) or unknown activities
 """
                 updated_content = '\n'.join(filtered_lines).rstrip() + '\n' + suggestion
-                state_file.write_text(updated_content, encoding='utf-8')
+                _write_queue.write_text(state_file, updated_content, encoding='utf-8')
 
             except Exception as e:
                 log_to_file(log_file, f"WARNING: Could not update current_state.md: {e}")
@@ -223,15 +241,23 @@ def calculate_time(message: str, timing_file: Path, state_file: Path, log_file: 
         return 0, ""
 
 
-def track_entities(message: str, tracker_file: Path, counter_file: Path, config: dict, log_file: Path) -> dict:
+def track_entities(message: str, tracker_file: Path, counter_file: Path, config: dict, log_file: Path, file_tracker: Optional['FileChangeTracker'] = None) -> dict:
     """Track entity mentions in JSON
+
+    Args:
+        message: User message
+        tracker_file: Entity tracker JSON file
+        counter_file: Response counter file
+        config: Configuration dict
+        log_file: Log file
+        file_tracker: Optional FileChangeTracker for marking auto-generated files
 
     Returns: dict of entities found in this message
     """
     # Initialize tracker if doesn't exist
     if not tracker_file.exists():
         tracker = {"entities": {}}
-        tracker_file.write_text(json.dumps(tracker, indent=2), encoding='utf-8')
+        _write_queue.write_json(tracker_file, tracker, encoding='utf-8', indent=2)
     else:
         try:
             tracker = json.loads(tracker_file.read_text(encoding='utf-8'))
@@ -295,102 +321,95 @@ def track_entities(message: str, tracker_file: Path, counter_file: Path, config:
 
             # PHASE 3: Auto-generate entity card
             rp_dir_path = tracker_file.parent.parent  # Go up from state/ to RP root
-            card_generated = auto_generate_entity_card(entity, entity_data, rp_dir_path, log_file)
+            card_generated = auto_generate_entity_card(entity, entity_data, rp_dir_path, log_file, file_tracker)
 
             if card_generated:
                 # Mark as created in tracker
                 entity_data['card_created'] = True
 
-    # Save updated tracker
+    # Save updated tracker (queued with debouncing)
     try:
-        tracker_file.write_text(json.dumps(tracker, indent=2), encoding='utf-8')
+        _write_queue.write_json(tracker_file, tracker, encoding='utf-8', indent=2)
     except Exception as e:
-        log_to_file(log_file, f"ERROR: Could not save entity tracker: {e}")
+        log_to_file(log_file, f"ERROR: Could not queue entity tracker: {e}")
 
     return entities_this_message
 
 
-def identify_triggers(message: str, rp_dir: Path, log_file: Path) -> tuple[list, list]:
-    """Identify conditional files to load based on trigger words
+def identify_triggers(message: str, rp_dir: Path, log_file: Path, config: dict = None) -> tuple[list, list]:
+    """Identify conditional files to load based on trigger words using enhanced trigger system
 
     Returns: (files_to_load, entity_names_loaded)
     """
     files_to_load = []
     entity_names = []
 
-    # Check characters directory
-    chars_dir = rp_dir / "characters"
-    if chars_dir.exists():
-        for char_file in chars_dir.glob("*.md"):
-            try:
-                content = char_file.read_text(encoding='utf-8')
+    # Build trigger system configuration
+    if config is None:
+        config = {}
 
-                # Extract triggers - support both formats
-                # Format 1: **Triggers**: word1, word2, word3
-                # Format 2: [Triggers:word1,word2,word3']
-                triggers = []
+    # Get trigger system config or use defaults
+    trigger_config = config.get('trigger_system', {})
 
-                for line in content.split('\n'):
-                    if line.strip().lower().startswith('**triggers**:'):
-                        trigger_text = line.split(':', 1)[1].strip()
-                        triggers = [t.strip() for t in trigger_text.split(',')]
-                        break
-                    elif line.strip().startswith('[Triggers:'):
-                        trigger_text = line.strip()[10:]  # Remove "[Triggers:"
-                        trigger_text = trigger_text.rstrip("']")
-                        triggers = [t.strip() for t in trigger_text.split(',')]
-                        break
+    # Default configuration: keyword + regex enabled, semantic optional
+    full_config = {
+        'trigger_system': {
+            'keyword_matching': trigger_config.get('keyword_matching', {
+                'enabled': True,
+                'case_sensitive': False,
+                'use_word_boundaries': True
+            }),
+            'regex_matching': trigger_config.get('regex_matching', {
+                'enabled': True,
+                'max_patterns_per_file': 10
+            }),
+            'semantic_matching': trigger_config.get('semantic_matching', {
+                'enabled': False,  # Optional, requires sentence-transformers
+                'model': 'all-MiniLM-L6-v2',
+                'similarity_threshold': 0.7
+            })
+        }
+    }
 
-                # Check if any trigger matches
-                for trigger in triggers:
-                    if trigger and trigger in message:
-                        files_to_load.append(char_file)
-                        # Extract entity name from filename
-                        name = char_file.stem
-                        name = re.sub(r'^\[CHAR\]\s*', '', name)
-                        entity_names.append(name)
-                        log_to_file(log_file, f"Trigger match: Loading {char_file.name} (matched: {trigger})")
-                        break
+    log_to_file(log_file, "--- Using Enhanced Trigger System ---")
+    log_to_file(log_file, f"Keyword: {full_config['trigger_system']['keyword_matching']['enabled']}, "
+                          f"Regex: {full_config['trigger_system']['regex_matching']['enabled']}, "
+                          f"Semantic: {full_config['trigger_system']['semantic_matching']['enabled']}")
 
-            except Exception as e:
-                log_to_file(log_file, f"WARNING: Could not process {char_file.name}: {e}")
+    # Create TriggerMatcher
+    try:
+        matcher = TriggerMatcher(full_config)
 
-    # Check entities directory
-    entities_dir = rp_dir / "entities"
-    if entities_dir.exists():
-        for entity_file in entities_dir.glob("*.md"):
-            try:
-                content = entity_file.read_text(encoding='utf-8')
+        # Find triggered files
+        matches = matcher.find_triggered_files(
+            message,
+            rp_dir,
+            log_callback=lambda msg: log_to_file(log_file, msg)
+        )
 
-                # Extract triggers
-                triggers = []
-                for line in content.split('\n'):
-                    if line.strip().lower().startswith('**triggers**:'):
-                        trigger_text = line.split(':', 1)[1].strip()
-                        triggers = [t.strip() for t in trigger_text.split(',')]
-                        break
-                    elif line.strip().startswith('[Triggers:'):
-                        trigger_text = line.strip()[10:]
-                        trigger_text = trigger_text.rstrip("']")
-                        triggers = [t.strip() for t in trigger_text.split(',')]
-                        break
+        # Convert matches to file paths and entity names
+        for match in matches:
+            files_to_load.append(match.file_path)
+            entity_names.append(match.entity_name)
 
-                # Check if any trigger matches
-                for trigger in triggers:
-                    if trigger and trigger in message:
-                        files_to_load.append(entity_file)
-                        # Extract entity name
-                        name = entity_file.stem
-                        name = re.sub(r'^\[[A-Z]+\]\s*', '', name)
-                        entity_names.append(name)
-                        log_to_file(log_file, f"Trigger match: Loading {entity_file.name} (matched: {trigger})")
-                        break
+            # Log match details
+            if match.trigger_type == 'semantic':
+                log_to_file(log_file,
+                    f"TRIGGER: {match.entity_name} ({match.trigger_type}, "
+                    f"pattern: '{match.matched_pattern}', confidence: {match.confidence:.3f})")
+            else:
+                log_to_file(log_file,
+                    f"TRIGGER: {match.entity_name} ({match.trigger_type}, "
+                    f"pattern: '{match.matched_pattern}')")
 
-            except Exception as e:
-                log_to_file(log_file, f"WARNING: Could not process {entity_file.name}: {e}")
+        if files_to_load:
+            log_to_file(log_file, f"Conditional files loaded: {len(files_to_load)}")
 
-    if files_to_load:
-        log_to_file(log_file, f"Conditional files loaded: {len(files_to_load)}")
+    except Exception as e:
+        log_to_file(log_file, f"ERROR in enhanced trigger system: {e}")
+        log_to_file(log_file, "Falling back to no triggers")
+        import traceback
+        log_to_file(log_file, traceback.format_exc())
 
     return files_to_load, entity_names
 
@@ -504,9 +523,9 @@ def update_status_file(status_file: Path, state_file: Path, counter_file: Path,
 """
 
     try:
-        status_file.write_text(status_content, encoding='utf-8')
+        _write_queue.write_text(status_file, status_content, encoding='utf-8')
     except Exception as e:
-        print(f"WARNING: Could not write status file: {e}")
+        print(f"WARNING: Could not queue status file: {e}")
 
 
 def call_deepseek_api(prompt: str, log_file: Path, rp_dir: Optional[Path] = None) -> str:
@@ -536,12 +555,36 @@ def call_deepseek_api(prompt: str, log_file: Path, rp_dir: Optional[Path] = None
     return ""
 
 
-def auto_generate_entity_card(entity_name: str, entity_data: dict, rp_dir: Path, log_file: Path) -> bool:
+def auto_generate_entity_card(entity_name: str, entity_data: dict, rp_dir: Path, log_file: Path, file_tracker: Optional['FileChangeTracker'] = None) -> bool:
     """Auto-generate entity card using DeepSeek API
+
+    If card already exists, updates it with strikethrough formatting for changes.
+    If card is new, creates fresh card without strikethrough.
+
+    Args:
+        entity_name: Name of entity
+        entity_data: Entity tracking data
+        rp_dir: RP directory path
+        log_file: Log file path
+        file_tracker: Optional FileChangeTracker to mark file as auto-generated
 
     Returns: True if card generated successfully, False otherwise
     """
     log_to_file(log_file, f"[AUTO-GEN] Generating entity card for: {entity_name}")
+
+    # Check if card already exists
+    entities_dir = rp_dir / "entities"
+    card_file = entities_dir / f"[CHAR] {entity_name}.md"
+    existing_card = None
+    is_update = False
+
+    if card_file.exists():
+        try:
+            existing_card = card_file.read_text(encoding='utf-8')
+            is_update = True
+            log_to_file(log_file, f"[AUTO-GEN] Existing card found - will UPDATE with strikethrough formatting")
+        except Exception as e:
+            log_to_file(log_file, f"WARNING: Could not read existing card: {e}")
 
     # Search recent chapters for context
     context = ""
@@ -563,11 +606,67 @@ def auto_generate_entity_card(entity_name: str, entity_data: dict, rp_dir: Path,
     if not context:
         context = f"Entity '{entity_name}' has been mentioned {entity_data['mentions']} times starting from chapter {entity_data['first_chapter']}. Generate a card based on typical story context."
 
-    # Build prompt
+    # Build prompt based on whether this is an update or new card
     first_chapter = entity_data.get('first_chapter', 1)
     mentions = entity_data.get('mentions', 0)
 
-    prompt = f"""Create an entity card for a roleplay story.
+    if is_update and existing_card:
+        # UPDATE EXISTING CARD - Use strikethrough formatting
+        prompt = f"""UPDATE an existing entity card for a roleplay story.
+
+Entity Name: {entity_name}
+Current Mentions: {mentions} (first in chapter {first_chapter})
+
+New Context from recent story:{context}
+
+EXISTING CARD TO UPDATE:
+---
+{existing_card}
+---
+
+CRITICAL FORMATTING RULES - STRIKETHROUGH FOR CHANGES:
+
+When information has CHANGED, you MUST preserve the old information with strikethrough:
+- Use ~~old information~~ -> new information (ASCII arrow: dash greater-than)
+- NEVER delete old information
+- Keep all chapter appearances (never remove them)
+- IMPORTANT: Use ASCII arrow (->) NOT Unicode arrow, for compatibility
+
+Examples of CORRECT updates:
+- ~~Lives alone~~ -> Lives with boyfriend
+- ~~Works as barista~~ -> Works as legal assistant
+- ~~Single~~ -> Dating Marcus (Chapter 3+)
+- **Job**: ~~Coffee Corner Cafe (Ch. 1-3)~~ -> Morrison Law Firm (Ch. 4+)
+
+When information is completely NEW (not replacing anything), add it normally without strikethrough.
+
+REQUIRED UPDATES:
+1. Update **Mention Count** to: {mentions}
+2. Update **Last Updated** date to: {datetime.now().strftime("%B %d, %Y")}
+3. Add any new Appearances sections for new chapters (keep all old chapters)
+4. Add a change log entry at the top if significant changes occurred:
+   ## Change Log
+   - **{datetime.now().strftime("%B %d, %Y")}**: [Brief description of what changed]
+
+5. Update any information that has changed based on the new context:
+   - If living situation changed: ~~old~~ -> new
+   - If job changed: ~~old~~ -> new
+   - If relationships changed: ~~old~~ -> new
+   - If appearance changed: ~~old~~ -> new
+   - If personality evolved: ~~old~~ -> new with note about growth
+
+OUTPUT REQUIREMENTS:
+- Output the COMPLETE updated card in markdown format
+- Include ALL sections from the original card
+- Apply strikethrough formatting to ALL changed information
+- Keep the same structure and heading format
+- Use AI Dungeon trigger format: [Triggers:name,variations']
+
+Output ONLY the completed updated entity card."""
+
+    else:
+        # CREATE NEW CARD - No strikethrough needed
+        prompt = f"""Create an entity card for a roleplay story.
 
 Entity Name: {entity_name}
 Mentions: {mentions} (first in chapter {first_chapter})
@@ -610,14 +709,18 @@ Output ONLY the completed entity card in markdown format."""
     card_content = call_deepseek_api(prompt, log_file, rp_dir=rp_dir)
 
     if card_content:
-        # Save card
-        entities_dir = rp_dir / "entities"
+        # Save card (queued)
         entities_dir.mkdir(exist_ok=True)
+        _write_queue.write_text(card_file, card_content, encoding='utf-8')
 
-        card_file = entities_dir / f"[CHAR] {entity_name}.md"
-        card_file.write_text(card_content, encoding='utf-8')
+        # Mark file as auto-generated for change tracking
+        if file_tracker:
+            file_tracker.mark_file_as_auto_generated(card_file)
 
-        log_to_file(log_file, f"[SUCCESS] Auto-generated entity card: entities/[CHAR] {entity_name}.md")
+        if is_update:
+            log_to_file(log_file, f"[SUCCESS] Updated entity card with strikethrough formatting: entities/[CHAR] {entity_name}.md")
+        else:
+            log_to_file(log_file, f"[SUCCESS] Auto-generated new entity card: entities/[CHAR] {entity_name}.md")
         return True
     else:
         log_to_file(log_file, f"[ERROR] Failed to generate card for {entity_name}")
@@ -694,7 +797,7 @@ Output ONLY the chapter summary."""
 {summary}
 """
 
-        summary_file.write_text(full_summary, encoding='utf-8')
+        _write_queue.write_text(summary_file, full_summary, encoding='utf-8')
         log_to_file(log_file, f"[SUCCESS] Chapter {chapter_number} summary saved to chapters/Chapter {chapter_number}.txt")
         return summary
     else:
@@ -892,11 +995,11 @@ def track_tier3_triggers(triggered_files: list, tracker_file: Path, log_file: Pa
     # Keep only last 10 responses
     history["trigger_history"] = history["trigger_history"][-10:]
 
-    # Save updated history
+    # Save updated history (queued)
     try:
-        tracker_file.write_text(json.dumps(history, indent=2), encoding='utf-8')
+        _write_queue.write_json(tracker_file, history, encoding='utf-8', indent=2)
     except Exception as e:
-        log_to_file(log_file, f"WARNING: Could not save trigger history: {e}")
+        log_to_file(log_file, f"WARNING: Could not queue trigger history: {e}")
 
     # Find files that should be escalated (3+ triggers in last 10)
     trigger_counts = {}
@@ -936,6 +1039,9 @@ def run_automation(message: str, rp_dir: Path) -> tuple[str, list]:
     loaded_entities = []
     all_loaded_files = []
 
+    # Initialize file change tracker
+    file_tracker = FileChangeTracker(rp_dir)
+
     log_to_file(log_file, "========== RP Automation Starting (Phases 1-3: Full System) ==========")
 
     # 1. Load config
@@ -948,7 +1054,7 @@ def run_automation(message: str, rp_dir: Path) -> tuple[str, list]:
     total_minutes, activities_desc = calculate_time(message, timing_file, state_file, log_file)
 
     # 4. Track entities (Phase 3: now auto-generates cards when threshold reached)
-    entities_found = track_entities(message, tracker_file, counter_file, config, log_file)
+    entities_found = track_entities(message, tracker_file, counter_file, config, log_file, file_tracker)
 
     # 5. PHASE 2: Load TIER_1 files (core RP files - every response)
     log_to_file(log_file, "--- TIER_1 Loading (Core Files) ---")
@@ -960,7 +1066,7 @@ def run_automation(message: str, rp_dir: Path) -> tuple[str, list]:
 
     # 7. PHASE 2: Identify TIER_3 triggers (conditional entity/character files)
     log_to_file(log_file, "--- TIER_3 Loading (Conditional) ---")
-    tier3_files, loaded_entities = identify_triggers(message, rp_dir, log_file)
+    tier3_files, loaded_entities = identify_triggers(message, rp_dir, log_file, config)
 
     # 8. PHASE 2: Track trigger frequency and escalate if needed
     escalated_files = track_tier3_triggers(tier3_files, trigger_history_file, log_file)
@@ -1090,6 +1196,9 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
     # Initialize tracking
     loaded_entities = []
 
+    # Initialize file change tracker
+    file_tracker = FileChangeTracker(rp_dir)
+
     log_to_file(log_file, "========== RP Automation Starting (API Mode with Caching) ==========")
 
     # 1. Load config
@@ -1102,7 +1211,7 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
     total_minutes, activities_desc = calculate_time(message, timing_file, state_file, log_file)
 
     # 4. Track entities
-    entities_found = track_entities(message, tracker_file, counter_file, config, log_file)
+    entities_found = track_entities(message, tracker_file, counter_file, config, log_file, file_tracker)
 
     # 5. Load TIER_1 files (these will be cached!)
     log_to_file(log_file, "--- TIER_1 Loading (Core Files - FOR CACHING) ---")
@@ -1114,12 +1223,28 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
 
     # 7. Identify TIER_3 triggers
     log_to_file(log_file, "--- TIER_3 Loading (Conditional) ---")
-    tier3_files, loaded_entities = identify_triggers(message, rp_dir, log_file)
+    tier3_files, loaded_entities = identify_triggers(message, rp_dir, log_file, config)
 
     # 8. Track trigger frequency
     escalated_files = track_tier3_triggers(tier3_files, trigger_history_file, log_file)
 
-    # 9. Update status file
+    # 9. Check for file updates and generate notifications
+    log_to_file(log_file, "--- Checking for file updates ---")
+    all_loaded_files = []
+    # Collect all files that will be in the context
+    all_loaded_files.extend([rp_dir / name for name in tier1_files.keys() if (rp_dir / name).exists()])
+    all_loaded_files.extend(tier3_files)
+    all_loaded_files.extend(escalated_files)
+
+    file_updates, updated_files = file_tracker.check_files_for_updates(all_loaded_files)
+    update_notification = ""
+    if file_updates:
+        update_notification = file_tracker.generate_update_notification(file_updates)
+        log_to_file(log_file, f"File updates detected: {len(file_updates)} files")
+        for update in file_updates:
+            log_to_file(log_file, f"  - {update['file_name']} ({update['category']})")
+
+    # 10. Update status file
     update_status_file(status_file, state_file, counter_file, tracker_file, config, loaded_entities)
 
     # Build CACHED CONTEXT (TIER_1 only)
@@ -1135,6 +1260,10 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
 
     # Build DYNAMIC PROMPT (everything else)
     dynamic_sections = []
+
+    # FILE UPDATE NOTIFICATIONS (highest priority - Claude needs to see these first!)
+    if update_notification:
+        dynamic_sections.append(update_notification)
 
     # Story arc generation (if threshold reached)
     if should_generate_arc:
@@ -1252,8 +1381,9 @@ def main():
             if api_key:
                 api_client = ClaudeAPIClient(api_key)
                 conversation_manager = ConversationManager(state_dir)
-                print("🌉 TUI Bridge started (API MODE with Prompt Caching)")
+                print("🌉 TUI Bridge started (API MODE with Prompt Caching + Extended Thinking)")
                 print("💾 TIER_1 files will be cached for maximum efficiency!")
+                print("🧠 Extended thinking enabled for better context and fewer corrections!")
             else:
                 print("⚠️  API mode enabled but no API key found. Falling back to SDK mode.")
                 print("   Set ANTHROPIC_API_KEY environment variable or add to config.json")
@@ -1271,6 +1401,7 @@ def main():
             print("🚀 TUI Bridge started (SDK MODE - High Performance)")
             print("💾 TIER_1 files will be cached for maximum efficiency!")
             print("⚡ Real-time streaming enabled!")
+            print("🧠 Extended thinking enabled for better context and fewer corrections!")
         except Exception as e:
             print(f"❌ Error initializing SDK: {e}")
             print("   Make sure Node.js is installed and run: npm install")
@@ -1450,10 +1581,17 @@ def main():
 
     except KeyboardInterrupt:
         print("\n\n👋 Bridge stopped")
+
+        # Flush pending writes before shutdown
+        print("💾 Flushing pending writes...")
+        flush_all_writes()
+        print("✓ All writes complete")
+
         # Clean up SDK client
         if sdk_client:
             sdk_client.close()
             print("🔒 SDK client closed")
+
         # Clean up flags
         ready_flag.unlink(missing_ok=True)
         done_flag.unlink(missing_ok=True)

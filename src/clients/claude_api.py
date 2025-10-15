@@ -29,7 +29,7 @@ class ClaudeAPIClient:
             )
 
         self.client = anthropic.Anthropic(api_key=self.api_key)
-        self.model = "claude-sonnet-4.5-20250929"  # Current best model with caching
+        self.model = "claude-sonnet-4-5-20250929"  # Claude Sonnet 4.5 with extended thinking support
 
     def send_message(
         self,
@@ -37,9 +37,10 @@ class ClaudeAPIClient:
         cached_context: Optional[str] = None,
         conversation_history: Optional[List[Dict[str, Any]]] = None,
         max_tokens: int = 8192,
-        temperature: float = 1.0
+        temperature: float = 1.0,
+        thinking_budget: int = 10000
     ) -> Dict[str, Any]:
-        """Send a message to Claude with prompt caching.
+        """Send a message to Claude with prompt caching and extended thinking.
 
         Args:
             user_message: The user's message/prompt
@@ -48,10 +49,12 @@ class ClaudeAPIClient:
             conversation_history: Previous messages in format [{"role": "user"|"assistant", "content": "..."}]
             max_tokens: Maximum tokens in response
             temperature: Sampling temperature (0-1)
+            thinking_budget: Tokens allocated for extended thinking (default 10000)
 
         Returns:
             Dict with:
                 - content: The response text
+                - thinking: The thinking process (if available)
                 - usage: Token usage stats including cache hits
                 - raw_response: Full API response object
         """
@@ -79,18 +82,33 @@ class ClaudeAPIClient:
             "content": user_message
         })
 
-        # Make API call
+        # Make API call with extended thinking
         response = self.client.messages.create(
             model=self.model,
             max_tokens=max_tokens,
             temperature=temperature,
+            thinking={
+                "type": "enabled",
+                "budget_tokens": thinking_budget
+            },
             system=system_messages if system_messages else None,
             messages=messages
         )
 
         # Extract response details
+        # Handle multiple content blocks (thinking + text)
+        text_content = ""
+        thinking_content = ""
+
+        for block in response.content:
+            if block.type == "thinking":
+                thinking_content = block.thinking
+            elif block.type == "text":
+                text_content = block.text
+
         result = {
-            "content": response.content[0].text,
+            "content": text_content,
+            "thinking": thinking_content,  # Include thinking for debugging if needed
             "usage": {
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens,

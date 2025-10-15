@@ -78,6 +78,10 @@ from src.clients.claude_sdk import ClaudeSDKClient
 sys.path.insert(0, str(Path(__file__).parent / "trigger_system"))
 from trigger_system import TriggerMatcher
 
+# Import file change tracker from WIP
+sys.path.insert(0, str(Path(__file__).parent))
+from file_change_tracker import FileChangeTracker
+
 
 # =============================================================================
 # AUTOMATION MODULE - Replaces bash hook functionality
@@ -227,8 +231,16 @@ def calculate_time(message: str, timing_file: Path, state_file: Path, log_file: 
         return 0, ""
 
 
-def track_entities(message: str, tracker_file: Path, counter_file: Path, config: dict, log_file: Path) -> dict:
+def track_entities(message: str, tracker_file: Path, counter_file: Path, config: dict, log_file: Path, file_tracker: Optional['FileChangeTracker'] = None) -> dict:
     """Track entity mentions in JSON
+
+    Args:
+        message: User message
+        tracker_file: Entity tracker JSON file
+        counter_file: Response counter file
+        config: Configuration dict
+        log_file: Log file
+        file_tracker: Optional FileChangeTracker for marking auto-generated files
 
     Returns: dict of entities found in this message
     """
@@ -299,7 +311,7 @@ def track_entities(message: str, tracker_file: Path, counter_file: Path, config:
 
             # PHASE 3: Auto-generate entity card
             rp_dir_path = tracker_file.parent.parent  # Go up from state/ to RP root
-            card_generated = auto_generate_entity_card(entity, entity_data, rp_dir_path, log_file)
+            card_generated = auto_generate_entity_card(entity, entity_data, rp_dir_path, log_file, file_tracker)
 
             if card_generated:
                 # Mark as created in tracker
@@ -533,11 +545,18 @@ def call_deepseek_api(prompt: str, log_file: Path, rp_dir: Optional[Path] = None
     return ""
 
 
-def auto_generate_entity_card(entity_name: str, entity_data: dict, rp_dir: Path, log_file: Path) -> bool:
+def auto_generate_entity_card(entity_name: str, entity_data: dict, rp_dir: Path, log_file: Path, file_tracker: Optional['FileChangeTracker'] = None) -> bool:
     """Auto-generate entity card using DeepSeek API
 
     If card already exists, updates it with strikethrough formatting for changes.
     If card is new, creates fresh card without strikethrough.
+
+    Args:
+        entity_name: Name of entity
+        entity_data: Entity tracking data
+        rp_dir: RP directory path
+        log_file: Log file path
+        file_tracker: Optional FileChangeTracker to mark file as auto-generated
 
     Returns: True if card generated successfully, False otherwise
     """
@@ -683,6 +702,10 @@ Output ONLY the completed entity card in markdown format."""
         # Save card
         entities_dir.mkdir(exist_ok=True)
         card_file.write_text(card_content, encoding='utf-8')
+
+        # Mark file as auto-generated for change tracking
+        if file_tracker:
+            file_tracker.mark_file_as_auto_generated(card_file)
 
         if is_update:
             log_to_file(log_file, f"[SUCCESS] Updated entity card with strikethrough formatting: entities/[CHAR] {entity_name}.md")
@@ -1160,6 +1183,9 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
     # Initialize tracking
     loaded_entities = []
 
+    # Initialize file change tracker
+    file_tracker = FileChangeTracker(rp_dir)
+
     log_to_file(log_file, "========== RP Automation Starting (API Mode with Caching) ==========")
 
     # 1. Load config
@@ -1172,7 +1198,7 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
     total_minutes, activities_desc = calculate_time(message, timing_file, state_file, log_file)
 
     # 4. Track entities
-    entities_found = track_entities(message, tracker_file, counter_file, config, log_file)
+    entities_found = track_entities(message, tracker_file, counter_file, config, log_file, file_tracker)
 
     # 5. Load TIER_1 files (these will be cached!)
     log_to_file(log_file, "--- TIER_1 Loading (Core Files - FOR CACHING) ---")
@@ -1189,7 +1215,23 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
     # 8. Track trigger frequency
     escalated_files = track_tier3_triggers(tier3_files, trigger_history_file, log_file)
 
-    # 9. Update status file
+    # 9. Check for file updates and generate notifications
+    log_to_file(log_file, "--- Checking for file updates ---")
+    all_loaded_files = []
+    # Collect all files that will be in the context
+    all_loaded_files.extend([rp_dir / name for name in tier1_files.keys() if (rp_dir / name).exists()])
+    all_loaded_files.extend(tier3_files)
+    all_loaded_files.extend(escalated_files)
+
+    file_updates, updated_files = file_tracker.check_files_for_updates(all_loaded_files)
+    update_notification = ""
+    if file_updates:
+        update_notification = file_tracker.generate_update_notification(file_updates)
+        log_to_file(log_file, f"File updates detected: {len(file_updates)} files")
+        for update in file_updates:
+            log_to_file(log_file, f"  - {update['file_name']} ({update['category']})")
+
+    # 10. Update status file
     update_status_file(status_file, state_file, counter_file, tracker_file, config, loaded_entities)
 
     # Build CACHED CONTEXT (TIER_1 only)
@@ -1205,6 +1247,10 @@ def run_automation_with_caching(message: str, rp_dir: Path) -> tuple[str, str, l
 
     # Build DYNAMIC PROMPT (everything else)
     dynamic_sections = []
+
+    # FILE UPDATE NOTIFICATIONS (highest priority - Claude needs to see these first!)
+    if update_notification:
+        dynamic_sections.append(update_notification)
 
     # Story arc generation (if threshold reached)
     if should_generate_arc:
@@ -1273,6 +1319,7 @@ def main():
     print("=" * 70)
     print("  Using DEVELOPMENT code with NEW FEATURES:")
     print("  • Enhanced Multi-Tier Trigger System (Keyword + Regex + Semantic)")
+    print("  • File Change Tracking (notifies Claude when files update)")
     print("  • Strikethrough formatting for entity card updates")
     print("  • Preserves character history (~~old~~ → new)")
     print("=" * 70)
