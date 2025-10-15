@@ -12,7 +12,6 @@ from typing import Tuple, List, Optional
 from src.file_change_tracker import FileChangeTracker
 from src.automation.core import log_to_file, load_config, increment_counter
 from src.automation.time_tracking import TimeTracker
-# from src.automation.entity_tracking import EntityTracker  # OBSOLETE: Replaced by DeepSeek agents
 from src.automation.triggers import TriggerManager
 from src.automation.file_loading import FileLoader
 from src.automation.story_generation import StoryGenerator
@@ -21,6 +20,7 @@ from src.automation.profiling import PerformanceProfiler
 from src.automation.agent_coordinator import AgentCoordinator
 from src.automation.consistency_checklist import generate_consistency_checklist
 from src.automation.prompt_templates import PromptTemplateManager
+from src.automation.helpers.prompt_builder import PromptBuilder
 from src.automation.agents import (
     QuickEntityAnalysisAgent,
     FactExtractionAgent,
@@ -50,7 +50,6 @@ class AutomationOrchestrator:
 
         # Setup paths
         self.counter_file = self.state_dir / "response_counter.json"
-        # self.tracker_file = self.state_dir / "entity_tracker.json"  # OBSOLETE: Replaced by DeepSeek agents
         self.config_file = self.state_dir / "automation_config.json"
         self.state_file = self.state_dir / "current_state.md"
         self.status_file = rp_dir / "CURRENT_STATUS.md"
@@ -90,6 +89,15 @@ class AutomationOrchestrator:
             log_to_file(self.log_file, f"[PromptTemplateManager] Init failed: {e}")
             self.template_manager = None
 
+        # Initialize prompt builder (unified prompt building)
+        self.prompt_builder = PromptBuilder(
+            self.rp_dir,
+            self.log_file,
+            self.entity_manager,
+            self.template_manager,
+            self.config
+        )
+
     def run_automation(self, message: str) -> Tuple[str, List[str]]:
         """Run all automation tasks and return enhanced prompt
 
@@ -110,11 +118,7 @@ class AutomationOrchestrator:
         time_tracker = TimeTracker(self.timing_file, self.log_file)
         total_minutes, activities_desc = time_tracker.calculate_time(message, self.state_file)
 
-        # 3. Track entities - REMOVED (obsolete, replaced by DeepSeek agents)
-        # entity_tracker = EntityTracker(...)
-        # entities_found = entity_tracker.track_entities(message)
-
-        # 4. Load TIER_1 files
+        # 3. Load TIER_1 files
         log_to_file(self.log_file, "--- TIER_1 Loading (Core Files) ---")
         file_loader = FileLoader(self.rp_dir, self.log_file)
         tier1_files = file_loader.load_tier1_files()
@@ -182,12 +186,7 @@ class AutomationOrchestrator:
             time_tracker = TimeTracker(self.timing_file, self.log_file)
             total_minutes, activities_desc = time_tracker.calculate_time(message, self.state_file)
 
-        # 3. Track entities - REMOVED (obsolete, replaced by DeepSeek agents)
-        # with profiler.measure("entity_tracking") if profiler else self._nullcontext():
-        #     entity_tracker = EntityTracker(...)
-        #     entities_found = entity_tracker.track_entities(message)
-
-        # 4. Load TIER_1 files (these will be cached!)
+        # 3. Load TIER_1 files (these will be cached!)
         with profiler.measure("tier1_loading") if profiler else self._nullcontext():
             log_to_file(self.log_file, "--- TIER_1 Loading (Core Files - FOR CACHING) ---")
             file_loader = FileLoader(self.rp_dir, self.log_file)
@@ -449,38 +448,56 @@ class AutomationOrchestrator:
             log_to_file(self.log_file, f"[Background Agents] Completed: {stats['successful']}/{stats['agents_executed']} successful in {stats['max_duration_ms']}ms")
 
             # Save results to cache
-            coordinator.save_to_cache(self.agent_cache_file, response_number)
+            write_stats = coordinator.save_to_cache(self.agent_cache_file, response_number)
             log_to_file(self.log_file, "[Background Agents] Results saved to cache")
+
+            # === PERFORMANCE BREAKDOWN ===
+            # Calculate aggregate timing stats from agent results
+            total_gather_ms = 0
+            total_prompt_ms = 0
+            total_api_ms = 0
+            total_format_ms = 0
+            agents_with_timing = 0
+
+            # Note: Individual agent timings are logged by BaseAgent.execute()
+            # This is a summary showing overall patterns
+
+            write_ms = write_stats.get('write_ms', 0)
+            analysis_total_ms = stats.get('max_duration_ms', 0)
+
+            # Log performance breakdown
+            log_to_file(self.log_file, "")
+            log_to_file(self.log_file, "⏱️  Background Agent Performance Breakdown:")
+            log_to_file(self.log_file, "─────────────────────────────────────────────")
+            log_to_file(self.log_file, f"  Analysis Time:  {analysis_total_ms:>6.1f}ms (agents running in parallel)")
+            log_to_file(self.log_file, f"  Write Time:     {write_ms:>6.1f}ms (save cache file)")
+            log_to_file(self.log_file, f"  Total Time:     {analysis_total_ms + write_ms:>6.1f}ms")
+            log_to_file(self.log_file, "─────────────────────────────────────────────")
+
+            # Calculate percentage breakdown
+            total_time = analysis_total_ms + write_ms
+            if total_time > 0:
+                analysis_pct = (analysis_total_ms / total_time) * 100
+                write_pct = (write_ms / total_time) * 100
+                log_to_file(self.log_file, f"  Analysis: {analysis_pct:>5.1f}% | Write: {write_pct:>5.1f}%")
+                log_to_file(self.log_file, "─────────────────────────────────────────────")
+
+                # Analysis: Should we parallelize more?
+                if write_ms > analysis_total_ms * 0.5:
+                    log_to_file(self.log_file, "  ⚠️  Write time is significant (>50% of analysis)")
+                    log_to_file(self.log_file, "     Consider Writer Agent for better parallelism")
+                elif write_ms > 100:
+                    log_to_file(self.log_file, "  ℹ️  Write time is moderate (>100ms)")
+                    log_to_file(self.log_file, "     Writer Agent might improve throughput")
+                else:
+                    log_to_file(self.log_file, "  ✓  Write time is minimal - current system is efficient")
+
+            log_to_file(self.log_file, "")
 
         except Exception as e:
             log_to_file(self.log_file, f"[Background Agents] Error: {e}")
             import traceback
             log_to_file(self.log_file, traceback.format_exc())
-
-    def _extract_entity_name_from_path(self, file_path: Path) -> Optional[str]:
-        """Extract entity name from file path
-
-        Handles formats like:
-        - [CHAR] Sarah Mitchell.md -> Sarah Mitchell
-        - Sarah Mitchell.md -> Sarah Mitchell
-
-        Args:
-            file_path: Path to entity file
-
-        Returns:
-            Entity name or None if cannot extract
-        """
-        filename = file_path.stem  # Get filename without extension
-
-        # Remove [CHAR], [LOC], [ORG] tags if present
-        import re
-        cleaned_name = re.sub(r'^\[(?:CHAR|LOC|ORG)\]\s*', '', filename)
-
-        # If name is empty after cleaning, return None
-        if not cleaned_name or not cleaned_name.strip():
-            return None
-
-        return cleaned_name.strip()
 
     @staticmethod
     def _nullcontext():
@@ -493,7 +510,7 @@ class AutomationOrchestrator:
                                 tier1_files: dict, tier2_files: dict,
                                 tier3_files: list, escalated_files: list,
                                 message: str) -> str:
-        """Build enhanced prompt with all components
+        """Build enhanced prompt with all components (delegates to PromptBuilder)
 
         Args:
             should_generate_arc: Whether to inject arc generation
@@ -509,69 +526,18 @@ class AutomationOrchestrator:
         Returns:
             Enhanced prompt string
         """
-        prompt_sections = []
-
-        # Story arc generation (if threshold reached)
-        if should_generate_arc:
-            story_gen = StoryGenerator(self.rp_dir, self.log_file)
-            arc_instructions = story_gen.generate_story_arc_instructions(response_count)
-            prompt_sections.append(arc_instructions)
-
-        # Narrative template guidance (Phase 3.1)
-        if self.config.get("enable_narrative_templates", True) and self.template_manager:
-            try:
-                narrative_instructions = self.template_manager.generate_narrative_instructions()
-                if narrative_instructions:
-                    prompt_sections.append(narrative_instructions)
-                    log_to_file(self.log_file, "[Narrative Template] Injected")
-            except Exception as e:
-                log_to_file(self.log_file, f"[Narrative Template] Error: {e}")
-
-        # Time suggestion
-        if total_minutes > 0:
-            prompt_sections.append(f"⏱️ Time suggestion: {total_minutes} minutes ({activities_desc})")
-
-        # TIER_1: Core RP files
-        if tier1_files:
-            tier1_section = "<!-- ========== TIER_1: CORE RP FILES (ALWAYS LOADED) ========== -->\n"
-            for filename, content in tier1_files.items():
-                tier1_section += f"\n<!-- FILE: {filename} -->\n{content}\n"
-            prompt_sections.append(tier1_section)
-
-        # TIER_2: Guidelines
-        if tier2_files:
-            tier2_section = "<!-- ========== TIER_2: GUIDELINES (PERIODIC) ========== -->\n"
-            for filename, content in tier2_files.items():
-                tier2_section += f"\n<!-- FILE: {filename} -->\n{content}\n"
-            prompt_sections.append(tier2_section)
-
-        # TIER_3: Triggered files
-        if tier3_files:
-            tier3_section = "<!-- ========== TIER_3: TRIGGERED FILES (CONDITIONAL) ========== -->\n"
-            for file_path in tier3_files:
-                try:
-                    content = file_path.read_text(encoding='utf-8')
-                    tier3_section += f"\n<!-- FILE: {file_path.name} -->\n{content}\n"
-                except Exception as e:
-                    log_to_file(self.log_file, f"ERROR: Could not read {file_path.name}: {e}")
-            prompt_sections.append(tier3_section)
-
-        # TIER_3 ESCALATED: Frequently triggered files
-        if escalated_files:
-            escalated_section = "<!-- ========== TIER_3 ESCALATED: FREQUENTLY USED FILES ========== -->\n"
-            for file_path in escalated_files:
-                if file_path.exists():
-                    try:
-                        content = file_path.read_text(encoding='utf-8')
-                        escalated_section += f"\n<!-- FILE: {file_path.name} (ESCALATED) -->\n{content}\n"
-                    except Exception as e:
-                        log_to_file(self.log_file, f"ERROR: Could not read escalated file {file_path.name}: {e}")
-            prompt_sections.append(escalated_section)
-
-        # User message
-        prompt_sections.append(f"<!-- ========== USER MESSAGE ========== -->\n{message}")
-
-        return '\n\n'.join(prompt_sections)
+        return self.prompt_builder.build_prompt(
+            tier1_files=tier1_files,
+            tier2_files=tier2_files,
+            tier3_files=tier3_files,
+            escalated_files=escalated_files,
+            message=message,
+            response_count=response_count,
+            total_minutes=total_minutes,
+            activities_desc=activities_desc,
+            should_generate_arc=should_generate_arc,
+            cache_mode=False
+        )
 
     def _build_cached_and_dynamic_prompts(self, tier1_files: dict, update_notification: str,
                                           should_generate_arc: bool, response_count: int,
@@ -580,7 +546,7 @@ class AutomationOrchestrator:
                                           escalated_files: list, message: str,
                                           agent_context: Optional[str] = None,
                                           loaded_entities: Optional[List[str]] = None) -> Tuple[str, str]:
-        """Build cached context and dynamic prompt separately
+        """Build cached context and dynamic prompt separately (delegates to PromptBuilder)
 
         Args:
             tier1_files: TIER_1 files dict
@@ -594,133 +560,26 @@ class AutomationOrchestrator:
             escalated_files: Escalated file paths
             message: User message
             agent_context: Optional agent analysis context
-            loaded_entities: Optional list of entity names for consistency checklist (Phase 1.3)
+            loaded_entities: Optional list of entity names for consistency checklist
 
         Returns:
             Tuple of (cached_context, dynamic_prompt)
         """
-        if loaded_entities is None:
-            loaded_entities = []
-        # Build CACHED CONTEXT (TIER_1 only)
-        cached_sections = []
-        if tier1_files:
-            tier1_section = "<!-- ========== TIER_1: CORE RP FILES (CACHED) ========== -->\n"
-            for filename, content in tier1_files.items():
-                tier1_section += f"\n<!-- FILE: {filename} -->\n{content}\n"
-            cached_sections.append(tier1_section)
-
-        cached_context = '\n\n'.join(cached_sections) if cached_sections else ""
-
-        # Build DYNAMIC PROMPT (everything else)
-        dynamic_sections = []
-
-        # FILE UPDATE NOTIFICATIONS (highest priority)
-        if update_notification:
-            dynamic_sections.append(update_notification)
-
-        # Story arc generation
-        if should_generate_arc:
-            story_gen = StoryGenerator(self.rp_dir, self.log_file)
-            arc_instructions = story_gen.generate_story_arc_instructions(response_count)
-            dynamic_sections.append(arc_instructions)
-
-        # Narrative template guidance (Phase 3.1)
-        if self.config.get("enable_narrative_templates", True) and self.template_manager:
-            try:
-                narrative_instructions = self.template_manager.generate_narrative_instructions()
-                if narrative_instructions:
-                    dynamic_sections.append(narrative_instructions)
-                    log_to_file(self.log_file, "[Narrative Template] Injected")
-            except Exception as e:
-                log_to_file(self.log_file, f"[Narrative Template] Error: {e}")
-
-        # Time suggestion
-        if total_minutes > 0:
-            dynamic_sections.append(f"⏱️ Time suggestion: {total_minutes} minutes ({activities_desc})")
-
-        # TIER_2: Guidelines
-        if tier2_files:
-            tier2_section = "<!-- ========== TIER_2: GUIDELINES (PERIODIC) ========== -->\n"
-            for filename, content in tier2_files.items():
-                tier2_section += f"\n<!-- FILE: {filename} -->\n{content}\n"
-            dynamic_sections.append(tier2_section)
-
-        # TIER_3: Triggered files (Phase 1.3: Use EntityManager for entity cards)
-        if tier3_files:
-            tier3_section = "<!-- ========== TIER_3: TRIGGERED FILES (CONDITIONAL) ========== -->\n"
-            entities_with_cores = []  # Track entities with Personality Cores
-
-            for file_path in tier3_files:
-                try:
-                    # Check if this is an entity card (in entities/ or characters/ directory)
-                    is_entity = file_path.parent.name in ["entities", "characters"]
-
-                    if is_entity:
-                        # Use EntityManager to load entity card with Personality Core highlighting
-                        entity_name = self._extract_entity_name_from_path(file_path)
-                        if entity_name:
-                            entity_content = self.entity_manager.load_entity_card(entity_name, highlight_core=True)
-                            if entity_content:
-                                tier3_section += f"\n{entity_content}\n\n---\n"
-                                # Track if this entity has a Personality Core for checklist
-                                entity = self.entity_manager.get_entity(entity_name)
-                                if entity and entity.personality_core:
-                                    entities_with_cores.append(entity_name)
-                                continue
-
-                    # Not an entity card or EntityManager failed - load as regular file
-                    content = file_path.read_text(encoding='utf-8')
-                    tier3_section += f"\n<!-- FILE: {file_path.name} -->\n{content}\n"
-
-                except Exception as e:
-                    log_to_file(self.log_file, f"ERROR: Could not read {file_path.name}: {e}")
-
-            dynamic_sections.append(tier3_section)
-
-        # TIER_3 ESCALATED: Frequently triggered files
-        if escalated_files:
-            escalated_section = "<!-- ========== TIER_3 ESCALATED: FREQUENTLY USED FILES ========== -->\n"
-            for file_path in escalated_files:
-                if file_path.exists():
-                    try:
-                        content = file_path.read_text(encoding='utf-8')
-                        escalated_section += f"\n<!-- FILE: {file_path.name} (ESCALATED) -->\n{content}\n"
-                    except Exception as e:
-                        log_to_file(self.log_file, f"ERROR: Could not read escalated file {file_path.name}: {e}")
-            dynamic_sections.append(escalated_section)
-
-        # Agent context (if available)
-        if agent_context:
-            dynamic_sections.append(agent_context)
-
-        # Character Consistency Checklist (Phase 1.3) - Add BEFORE user message
-        # Combine entities from TIER_3 loading + loaded_entities parameter
-        all_entities_to_check = []
-        if 'entities_with_cores' in locals() and entities_with_cores:
-            all_entities_to_check.extend(entities_with_cores)
-        if loaded_entities:
-            # Also check loaded_entities in case they have cores
-            for entity_name in loaded_entities:
-                if entity_name not in all_entities_to_check:
-                    entity = self.entity_manager.get_entity(entity_name)
-                    if entity and entity.personality_core:
-                        all_entities_to_check.append(entity_name)
-
-        if all_entities_to_check:
-            consistency_checklist = generate_consistency_checklist(
-                all_entities_to_check,
-                self.entity_manager
-            )
-            if consistency_checklist:
-                dynamic_sections.append(consistency_checklist)
-                log_to_file(self.log_file, f"[Consistency Checklist] Added for: {', '.join(all_entities_to_check)}")
-
-        # User message
-        dynamic_sections.append(f"<!-- ========== USER MESSAGE ========== -->\n{message}")
-
-        dynamic_prompt = '\n\n'.join(dynamic_sections)
-
-        return cached_context, dynamic_prompt
+        return self.prompt_builder.build_prompt(
+            tier1_files=tier1_files,
+            tier2_files=tier2_files,
+            tier3_files=tier3_files,
+            escalated_files=escalated_files,
+            message=message,
+            response_count=response_count,
+            total_minutes=total_minutes,
+            activities_desc=activities_desc,
+            should_generate_arc=should_generate_arc,
+            agent_context=agent_context,
+            loaded_entities=loaded_entities,
+            update_notification=update_notification,
+            cache_mode=True
+        )
 
 
 # Convenience functions for backward compatibility

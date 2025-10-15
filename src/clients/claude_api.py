@@ -18,9 +18,11 @@ class ClaudeAPIClient:
     # Thinking mode presets (matching Claude Code CLI)
     THINKING_MODES = {
         "disabled": 0,           # No extended thinking
-        "think": 4000,           # Quick reasoning
-        "megathink": 10000,      # Standard reasoning
-        "ultrathink": 31999,     # Maximum reasoning
+        "think": 5000,           # Quick planning, simple refactoring
+        "think hard": 10000,     # Feature design, debugging
+        "megathink": 10000,      # Standard reasoning (same as think hard)
+        "think harder": 25000,   # Architecture decisions, complex bugs
+        "ultrathink": 31999,     # Maximum reasoning - system design
     }
 
     def __init__(self, api_key: Optional[str] = None):
@@ -58,7 +60,7 @@ class ClaudeAPIClient:
             conversation_history: Previous messages in format [{"role": "user"|"assistant", "content": "..."}]
             max_tokens: Maximum tokens in response
             temperature: Sampling temperature (0-1)
-            thinking_mode: Thinking mode preset ("disabled", "think", "megathink", "ultrathink")
+            thinking_mode: Thinking mode preset ("disabled", "think", "think hard", "megathink", "think harder", "ultrathink")
             thinking_budget: Custom thinking token budget (overrides thinking_mode if provided)
 
         Returns:

@@ -137,7 +137,7 @@ Complete guide to all available slash commands for the RP system.
 ```
 
 **What it does**:
-1. Loads "Follow CLAUDE.md for this session"
+1. Loads "Follow config/CLAUDE.md for this session"
 2. Displays current context:
    - Current chapter
    - Current timestamp
@@ -149,7 +149,7 @@ Complete guide to all available slash commands for the RP system.
 
 **Example Output**:
 ```
-Follow CLAUDE.md for this session.
+Follow config/CLAUDE.md for this session.
 
 ## Session Context:
 
@@ -730,7 +730,7 @@ To modify a command, edit its .md file.
 **Commands work with**:
 - **Hooks**: Auto-load triggered entities
 - **Session_End_Protocol.md**: /endSession follows this
-- **CLAUDE.md**: /continue loads main instructions
+- **config/CLAUDE.md**: /continue loads main instructions
 - **State files**: All commands read/write state/
 - **DeepSeek**: /gencard, /memory, /endSession use DeepSeek for cost savings
 

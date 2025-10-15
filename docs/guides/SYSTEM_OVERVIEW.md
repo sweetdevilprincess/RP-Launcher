@@ -305,7 +305,8 @@ RP Claude Code/
 ├── rp_client_tui.py           # TUI interface
 ├── tui_bridge.py              # Bridge + automation
 ├── requirements.txt           # Python dependencies
-├── CLAUDE.md                  # Project instructions for Claude
+├── config/
+│   └── CLAUDE.md              # Project instructions for Claude
 │
 ├── work_in_progress/          # Refactored modules
 │   ├── clients/

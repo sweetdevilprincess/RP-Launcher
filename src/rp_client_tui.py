@@ -382,15 +382,17 @@ class SettingsScreen(ModalScreen):
     def __init__(self, rp_dir: Path):
         super().__init__()
         self.rp_dir = rp_dir
-        self.config_file = rp_dir.parent / "config.json"  # Global config
+        self.config_file = rp_dir.parent / "config" / "config.json"  # Global config
 
     def compose(self) -> ComposeResult:
         # Load existing config
         config = self.load_config()
         claude_api_key = config.get("anthropic_api_key", "")
         deepseek_api_key = config.get("deepseek_api_key", "")
+        openrouter_model = config.get("openrouter_model", "deepseek/deepseek-chat-v3.1")
         use_api_mode = config.get("use_api_mode", False)
         use_proxy = config.get("use_proxy", False)
+        thinking_mode = config.get("thinking_mode", "megathink")
 
         # Mask API keys for display
         def mask_key(key):
@@ -435,27 +437,70 @@ class SettingsScreen(ModalScreen):
                 yield Static("   ⚠️  Must start with 'sk-ant-'", classes="settings-hint")
                 yield Static("")
 
-                yield Static("## DeepSeek API Configuration", classes="settings-section-title")
+                yield Static("## Thinking Mode Configuration", classes="settings-section-title")
+                yield Static("ℹ️  Changes take effect on next bridge restart", classes="settings-info")
                 yield Static("")
 
-                yield Static("DeepSeek API Key (for auto-generation features):", classes="settings-label")
+                yield Static("Thinking Mode (controls Claude's reasoning budget):", classes="settings-label")
+                yield Static(f"Current: {thinking_mode}", classes="settings-info")
+                yield Static("")
+
+                yield Static("Enter thinking mode (leave blank to keep current):", classes="settings-label")
+                yield Input(
+                    placeholder="disabled, think, think hard, megathink, think harder, ultrathink",
+                    id="thinking-mode-input"
+                )
+                yield Static("")
+
+                yield Static("💡 Thinking modes:", classes="settings-hint")
+                yield Static("   • disabled (0 tokens) - Fastest, minimal reasoning", classes="settings-info")
+                yield Static("   • think (5k tokens) - Quick planning, simple tasks (5-10s)", classes="settings-info")
+                yield Static("   • think hard (10k tokens) - Feature design, debugging (10-20s)", classes="settings-info")
+                yield Static("   • megathink (10k tokens) - Balanced, same as 'think hard' (DEFAULT)", classes="settings-info")
+                yield Static("   • think harder (25k tokens) - Complex bugs, architecture (30-60s)", classes="settings-info")
+                yield Static("   • ultrathink (32k tokens) - System design, major refactoring (1-3min)", classes="settings-info")
+                yield Static("   See docs/THINKING_MODES.md for details", classes="settings-info")
+                yield Static("")
+
+                yield Static("## OpenRouter API Configuration", classes="settings-section-title")
+                yield Static("ℹ️  Changes take effect immediately (no restart needed)", classes="settings-info")
+                yield Static("")
+
+                yield Static("OpenRouter API Key (provides access to DeepSeek for auto-generation):", classes="settings-label")
                 if deepseek_api_key:
                     yield Static(f"Current: {masked_deepseek_key}", classes="settings-info")
                 else:
                     yield Static("Current: Not set (auto-generation disabled)", classes="settings-info")
                 yield Static("")
 
-                yield Static("Enter new DeepSeek API key (leave blank to keep current):", classes="settings-label")
+                yield Static("Enter new OpenRouter API key (leave blank to keep current):", classes="settings-label")
                 yield Input(
-                    placeholder="sk-...",
+                    placeholder="sk-or-v1-...",
                     password=True,
                     id="deepseek-api-key-input"
                 )
                 yield Static("")
 
-                yield Static("💡 Get DeepSeek key from: https://platform.deepseek.com/api_keys",
+                yield Static("💡 Get OpenRouter key from: https://openrouter.ai/keys",
                            classes="settings-hint")
+                yield Static("   ⚠️  Must start with 'sk-or-v1-' (OpenRouter format)", classes="settings-hint")
                 yield Static("   Used for: Entity card generation, Story arc generation", classes="settings-info")
+                yield Static("")
+
+                yield Static("OpenRouter Model:", classes="settings-label")
+                yield Static(f"Current: {openrouter_model}", classes="settings-info")
+                yield Static("")
+
+                yield Static("Enter model name (leave blank to keep current):", classes="settings-label")
+                yield Input(
+                    placeholder="deepseek/deepseek-chat-v3.1",
+                    id="openrouter-model-input"
+                )
+                yield Static("")
+
+                yield Static("💡 Browse models at: https://openrouter.ai/models",
+                           classes="settings-hint")
+                yield Static("   Examples: deepseek/deepseek-chat-v3-0324, anthropic/claude-3.5-sonnet", classes="settings-info")
                 yield Static("")
 
                 yield Static("## Proxy Settings", classes="settings-section-title")
@@ -560,14 +605,21 @@ Replace this with your own instructions:
         # Get widgets
         api_mode_switch = self.query_one("#api-mode-switch", Switch)
         claude_key_input = self.query_one("#claude-api-key-input", Input)
+        thinking_mode_input = self.query_one("#thinking-mode-input", Input)
         deepseek_key_input = self.query_one("#deepseek-api-key-input", Input)
+        model_input = self.query_one("#openrouter-model-input", Input)
         proxy_switch = self.query_one("#proxy-switch", Switch)
 
         # Load existing config
         config = self.load_config()
 
+        # Track if API mode changed (this requires restart)
+        old_api_mode = config.get("use_api_mode", False)
+        new_api_mode = api_mode_switch.value
+        api_mode_changed = old_api_mode != new_api_mode
+
         # Update API mode
-        config["use_api_mode"] = api_mode_switch.value
+        config["use_api_mode"] = new_api_mode
 
         # Update proxy mode
         config["use_proxy"] = proxy_switch.value
@@ -585,17 +637,39 @@ Replace this with your own instructions:
                 return
             config["anthropic_api_key"] = new_claude_key
 
-        # Update DeepSeek API key if provided
+        # Update thinking mode if provided
+        new_thinking_mode = thinking_mode_input.value.strip().lower()
+        if new_thinking_mode:
+            # Validate thinking mode (ordered from lowest to highest budget)
+            valid_modes = ["disabled", "think", "think hard", "megathink", "think harder", "ultrathink"]
+            if new_thinking_mode not in valid_modes:
+                self.app.notify(
+                    f"Invalid thinking mode! Must be one of: {', '.join(valid_modes)}",
+                    severity="error",
+                    timeout=10
+                )
+                return
+            config["thinking_mode"] = new_thinking_mode
+
+        # Update OpenRouter API key if provided
         new_deepseek_key = deepseek_key_input.value.strip()
         if new_deepseek_key:
-            # Basic validation - DeepSeek keys typically start with 'sk-'
-            if not new_deepseek_key.startswith("sk-"):
+            # Basic validation - OpenRouter keys start with 'sk-or-v1-'
+            if not new_deepseek_key.startswith("sk-or-v1-"):
                 self.app.notify(
-                    "Warning: DeepSeek API key should start with 'sk-'",
+                    "Warning: OpenRouter API key should start with 'sk-or-v1-'",
                     severity="warning",
                     timeout=5
                 )
             config["deepseek_api_key"] = new_deepseek_key
+
+        # Update OpenRouter model if provided
+        new_model = model_input.value.strip()
+        if new_model:
+            config["openrouter_model"] = new_model
+        elif "openrouter_model" not in config:
+            # Set default if not present
+            config["openrouter_model"] = "deepseek/deepseek-chat-v3.1"
 
         # Preserve other settings
         if "auto_entity_cards" not in config:
@@ -606,6 +680,8 @@ Replace this with your own instructions:
             config["auto_story_arc"] = True
         if "arc_frequency" not in config:
             config["arc_frequency"] = 50
+        if "thinking_mode" not in config:
+            config["thinking_mode"] = "megathink"
 
         # Save config
         if self.save_config(config):
@@ -615,8 +691,12 @@ Replace this with your own instructions:
             updates = []
             if new_claude_key:
                 updates.append("Claude key updated")
+            if new_thinking_mode:
+                updates.append(f"Thinking mode set to {new_thinking_mode}")
             if new_deepseek_key:
-                updates.append("DeepSeek key updated")
+                updates.append("OpenRouter key updated")
+            if new_model:
+                updates.append(f"Model set to {new_model}")
             if not updates:
                 updates.append("settings saved")
 
@@ -627,12 +707,27 @@ Replace this with your own instructions:
                 timeout=5
             )
 
-            # Show restart message if API mode changed
-            if config["use_api_mode"]:
+            # Show restart message if API mode or thinking mode changed
+            needs_restart = api_mode_changed or new_thinking_mode
+            if needs_restart:
+                changes = []
+                if api_mode_changed:
+                    changes.append("API mode")
+                if new_thinking_mode:
+                    changes.append("thinking mode")
+
                 self.app.notify(
-                    "⚠️  Restart the bridge for changes to take effect",
+                    f"⚠️  {', '.join(changes)} changed - press F10 to restart bridge",
                     severity="warning",
                     timeout=10
+                )
+
+            # Notify that OpenRouter settings take effect immediately
+            if new_deepseek_key or new_model:
+                self.app.notify(
+                    "ℹ️  OpenRouter settings active immediately (no restart needed)",
+                    severity="information",
+                    timeout=5
                 )
 
         self.dismiss()
@@ -686,9 +781,8 @@ Next: {next_arc} responses
 ─────────────
 Ctrl+↵   Send
 Enter    New Line
-F1       Help
-⬇️       Footer buttons
-         for overlays
+F1-F9    Overlays
+F10      Restart Bridge
 """
 
         self.update(content)
@@ -887,9 +981,10 @@ class RPClientApp(App):
         Binding("f7", "show_genome", "Genome"),
         Binding("f8", "show_status", "Status"),
         Binding("f9", "show_settings", "Settings"),
+        Binding("f10", "restart_bridge", "Restart Bridge"),
     ]
 
-    def __init__(self, rp_dir: Path):
+    def __init__(self, rp_dir: Path, bridge_restart_callback=None):
         super().__init__()
         self.rp_dir = rp_dir
         self.state_dir = rp_dir / "state"
@@ -900,6 +995,7 @@ class RPClientApp(App):
         self.tui_active_flag = self.state_dir / "tui_active.flag"
         self.waiting_for_response = False
         self.file_manager = FileManager(rp_dir)
+        self.bridge_restart_callback = bridge_restart_callback
 
     def compose(self) -> ComposeResult:
         """Create the UI layout"""
@@ -1063,6 +1159,18 @@ class RPClientApp(App):
         self._dismiss_current_overlay()
         self.push_screen(SettingsScreen(self.rp_dir))
 
+    def action_restart_bridge(self) -> None:
+        """Restart the bridge process"""
+        if self.bridge_restart_callback:
+            self.notify("🔄 Restarting bridge...", severity="information", timeout=3)
+            try:
+                self.bridge_restart_callback()
+                self.notify("✅ Bridge restarted successfully!", severity="information", timeout=5)
+            except Exception as e:
+                self.notify(f"❌ Failed to restart bridge: {e}", severity="error", timeout=10)
+        else:
+            self.notify("⚠️ Bridge restart not available", severity="warning", timeout=5)
+
     def action_show_help(self) -> None:
         """Show help overlay"""
         help_text = """# Keyboard Shortcuts
@@ -1078,6 +1186,7 @@ Use the **F-keys** to open overlays:
 - **F1** - Help, **F2** - Memory, **F3** - Arc, **F4** - Characters
 - **F5** - Notes, **F6** - Entities, **F7** - Genome, **F8** - Status
 - **F9** - Settings (API configuration)
+- **F10** - Restart Bridge (use after changing settings)
 
 ## In Overlays
 - **ESC** - Close overlay

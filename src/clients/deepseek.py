@@ -93,17 +93,53 @@ def _load_api_key(rp_dir: Optional[Path] = None) -> str:
             pass
 
     raise MissingAPIKeyError(
-        "DeepSeek API key not found. Please:\n"
-        "  1. Press F9 in TUI to add DeepSeek key in Settings, OR\n"
+        "OpenRouter API key not found. Please:\n"
+        "  1. Press F9 in TUI to add OpenRouter key in Settings, OR\n"
         "  2. Set OPENROUTER_API_KEY or DEEPSEEK_API_KEY environment variable, OR\n"
-        "  3. Add to state/secrets.json"
+        "  3. Add to state/secrets.json\n"
+        "  Get your key from: https://openrouter.ai/keys"
     )
+
+
+def _load_model(rp_dir: Optional[Path] = None) -> str:
+    """Load OpenRouter model from config.
+
+    Checks in order:
+    1. OPENROUTER_MODEL environment variable
+    2. Global config.json (created by TUI settings)
+    3. Falls back to DEFAULT_MODEL
+
+    Args:
+        rp_dir: RP directory (for future use with per-RP configs)
+
+    Returns:
+        Model string (e.g., "deepseek/deepseek-chat-v3.1")
+    """
+    # Check environment variable
+    model = os.environ.get("OPENROUTER_MODEL")
+    if model:
+        return model
+
+    # Check global config.json (TUI settings)
+    base_dir = Path(__file__).parent.parent.parent
+    config_file = base_dir / "config.json"
+    if config_file.exists():
+        try:
+            config = json.loads(config_file.read_text(encoding='utf-8'))
+            model = config.get("openrouter_model")
+            if model:
+                return model
+        except Exception:
+            pass
+
+    # Fall back to default
+    return DEFAULT_MODEL
 
 
 def call_deepseek(
     prompt: str,
     rp_dir: Optional[Path] = None,
-    model: str = DEFAULT_MODEL,
+    model: Optional[str] = None,
     temperature: float = DEFAULT_TEMPERATURE,
     endpoint: str = DEFAULT_ENDPOINT,
     timeout: int = DEFAULT_TIMEOUT
@@ -113,7 +149,7 @@ def call_deepseek(
     Args:
         prompt: The prompt to send
         rp_dir: RP directory (used to find secrets.json)
-        model: Model to use (default: deepseek/deepseek-chat-v3.1)
+        model: Model to use (default: reads from config or deepseek/deepseek-chat-v3.1)
         temperature: Temperature for generation (default: 0.3)
         endpoint: API endpoint (default: OpenRouter)
         timeout: Request timeout in seconds (default: 60)
@@ -129,6 +165,10 @@ def call_deepseek(
     """
     # Load API key
     api_key = _load_api_key(rp_dir)
+
+    # Load model from config if not specified
+    if model is None:
+        model = _load_model(rp_dir)
 
     # Build request
     headers = {

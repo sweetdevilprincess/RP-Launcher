@@ -67,6 +67,7 @@ from src.fs_write_queue import flush_all_writes
 from src.automation import run_automation_with_caching
 from src.automation.file_loading import load_proxy_prompt
 from src.automation.core import get_response_count
+from src.automation.orchestrator import AutomationOrchestrator
 from src.file_manager import FileManager
 
 
@@ -84,7 +85,7 @@ def main():
     # Bridge is in src/, so go up one level to project root
     base_dir = Path(__file__).parent.parent
     rp_folder = sys.argv[1]
-    rp_dir = base_dir / rp_folder
+    rp_dir = base_dir / "RPs" / rp_folder
 
     if not rp_dir.exists():
         print(f"Error: RP folder not found: {rp_dir}")
@@ -99,6 +100,10 @@ def main():
 
     # Create FileManager for IPC operations
     file_manager = FileManager(rp_dir)
+
+    # Initialize orchestrator for background agent tasks
+    orchestrator = AutomationOrchestrator(rp_dir)
+    print("🎭 Automation orchestrator initialized")
 
     # Check for mode configuration (global config first, then per-RP)
     # Modes: SDK (default), API (alternative)

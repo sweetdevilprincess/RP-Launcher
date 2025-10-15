@@ -138,30 +138,56 @@ class BaseAgent(ABC):
         Raises:
             Exception: Any exception from gather_data, DeepSeek, or format_output
         """
+        import time
+
         try:
             # Log execution start
             if self.log_file:
                 log_to_file(self.log_file, f"[{self.get_agent_id()}] Executing agent")
 
-            # Step 1: Gather data
+            total_start = time.perf_counter()
+
+            # Step 1: Gather data (file I/O)
+            gather_start = time.perf_counter()
             data = self.gather_data(*args, **kwargs)
+            gather_time = (time.perf_counter() - gather_start) * 1000
 
-            # Step 2: Build prompt
+            # Step 2: Build prompt (in-memory processing)
+            prompt_start = time.perf_counter()
             prompt = self.build_prompt(data)
+            prompt_time = (time.perf_counter() - prompt_start) * 1000
 
-            # Step 3: Call DeepSeek with consistent temperature
+            # Step 3: Call DeepSeek (network I/O + LLM processing)
+            api_start = time.perf_counter()
             result = call_deepseek(
                 prompt,
                 rp_dir=self.rp_dir,
                 temperature=0.3  # Consistent for analysis agents
             )
+            api_time = (time.perf_counter() - api_start) * 1000
 
-            # Step 4: Format output
+            # Step 4: Format output (in-memory processing)
+            format_start = time.perf_counter()
             formatted = self.format_output(result, data)
+            format_time = (time.perf_counter() - format_start) * 1000
 
-            # Log success
+            total_time = (time.perf_counter() - total_start) * 1000
+
+            # Store timing metrics in data dict for AgentCoordinator
+            data['_timing'] = {
+                'gather_ms': round(gather_time, 1),
+                'prompt_ms': round(prompt_time, 1),
+                'api_ms': round(api_time, 1),
+                'format_ms': round(format_time, 1),
+                'total_ms': round(total_time, 1)
+            }
+
+            # Log success with timing breakdown
             if self.log_file:
-                log_to_file(self.log_file, f"[{self.get_agent_id()}] Completed successfully")
+                log_to_file(self.log_file,
+                    f"[{self.get_agent_id()}] Completed in {total_time:.1f}ms "
+                    f"(gather: {gather_time:.1f}ms, prompt: {prompt_time:.1f}ms, "
+                    f"api: {api_time:.1f}ms, format: {format_time:.1f}ms)")
 
             return formatted
 

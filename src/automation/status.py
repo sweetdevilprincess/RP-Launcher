@@ -18,6 +18,60 @@ from src.automation.core import get_response_count
 _write_queue = get_write_queue()
 
 
+# Status file template (condensed for easier maintenance)
+STATUS_TEMPLATE = """# Current RP Status
+
+**Last Updated**: {timestamp}
+
+---
+
+## 📍 Current State
+
+- **Timestamp**: {state_timestamp}
+- **Location**: {location}
+- **Chapter**: {chapter}
+- **Response Count**: {response_count}
+
+---
+
+## 📊 Progress
+
+**Story Arc**: {arc_progress} / {arc_frequency} responses
+- Next arc generation in: **{arc_next} responses**
+- Progress: {progress_bar}
+
+---
+
+## 🎭 Entities
+
+**Entity Cards**: {entity_count} entities in entities/ directory
+**Loaded This Response**: {loaded_entities}
+
+---
+
+## ⚙️ Automation
+
+**Entity Cards**: {auto_cards} (Threshold: {card_threshold} mentions)
+**Story Arcs**: {auto_arc} (Every {arc_frequency} responses)
+
+---
+
+## 📝 Quick Commands
+
+- `/status` - Detailed status report
+- `/continue` - Load session context
+- `/endSession` - End session protocol
+- `/arc` - Generate story arc
+- `/gencard [type], [name]` - Create entity card
+- `/note [text]` - Add quick note
+- `/memory` - Update memory
+
+---
+
+*Keep this file open in a second pane for live status updates*
+"""
+
+
 class StatusManager:
     """Manages status file generation"""
 
@@ -61,61 +115,28 @@ class StatusManager:
         # Loaded entities string
         loaded_str = ', '.join(loaded_entities) if loaded_entities else "None"
 
-        # Automation status
-        auto_cards, auto_arc, card_threshold = self._get_automation_status(config)
+        # Automation status (inlined from _get_automation_status for simplicity)
+        auto_cards = "✅ ON" if config.get('auto_entity_cards', True) else "❌ OFF"
+        auto_arc = "✅ ON" if config.get('auto_story_arc', True) else "❌ OFF"
+        card_threshold = config.get('entity_mention_threshold', 2)
 
-        # Write status file
-        status_content = f"""# Current RP Status
-
-**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
----
-
-## 📍 Current State
-
-- **Timestamp**: {timestamp}
-- **Location**: {location}
-- **Chapter**: {chapter}
-- **Response Count**: {response_count}
-
----
-
-## 📊 Progress
-
-**Story Arc**: {arc_progress} / {arc_frequency} responses
-- Next arc generation in: **{arc_next} responses**
-- Progress: {progress_bar}
-
----
-
-## 🎭 Entities
-
-**Entity Cards**: {entity_count} entities in entities/ directory
-**Loaded This Response**: {loaded_str}
-
----
-
-## ⚙️ Automation
-
-**Entity Cards**: {auto_cards} (Threshold: {card_threshold} mentions)
-**Story Arcs**: {auto_arc} (Every {arc_frequency} responses)
-
----
-
-## 📝 Quick Commands
-
-- `/status` - Detailed status report
-- `/continue` - Load session context
-- `/endSession` - End session protocol
-- `/arc` - Generate story arc
-- `/gencard [type], [name]` - Create entity card
-- `/note [text]` - Add quick note
-- `/memory` - Update memory
-
----
-
-*Keep this file open in a second pane for live status updates*
-"""
+        # Generate status content from template
+        status_content = STATUS_TEMPLATE.format(
+            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            state_timestamp=timestamp,
+            location=location,
+            chapter=chapter,
+            response_count=response_count,
+            arc_progress=arc_progress,
+            arc_frequency=arc_frequency,
+            arc_next=arc_next,
+            progress_bar=progress_bar,
+            entity_count=entity_count,
+            loaded_entities=loaded_str,
+            auto_cards=auto_cards,
+            auto_arc=auto_arc,
+            card_threshold=card_threshold
+        )
 
         try:
             _write_queue.write_text(status_file, status_content, encoding='utf-8')
@@ -190,21 +211,6 @@ class StatusManager:
         bar_filled = (progress * 10) // total
         bar_empty = 10 - bar_filled
         return '█' * bar_filled + '░' * bar_empty
-
-    def _get_automation_status(self, config: dict) -> tuple[str, str, int]:
-        """Get automation status strings
-
-        Args:
-            config: Configuration dict
-
-        Returns:
-            Tuple of (auto_cards_status, auto_arc_status, card_threshold)
-        """
-        auto_cards = "✅ ON" if config.get('auto_entity_cards', True) else "❌ OFF"
-        auto_arc = "✅ ON" if config.get('auto_story_arc', True) else "❌ OFF"
-        card_threshold = config.get('entity_mention_threshold', 2)
-
-        return auto_cards, auto_arc, card_threshold
 
 
 # Convenience function for backward compatibility

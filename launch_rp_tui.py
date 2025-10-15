@@ -14,6 +14,7 @@
 # ============================================================================
 
 import sys
+import os
 from pathlib import Path
 
 # Check if we're using the wrong Python (pkgs cache) and relaunch if needed
@@ -30,6 +31,23 @@ if "\\pkgs\\" in str(current_python) or "/pkgs/" in str(current_python):
     if conda_root:
         correct_python = conda_root / "python.exe"
         if correct_python.exists():
+            print("⚠️  Detected pkgs cache Python - relaunching with correct interpreter...")
+            # Clean up any existing bridge processes before relaunching
+            # (This prevents orphaned bridge processes)
+            try:
+                import psutil
+                current_pid = os.getpid()
+                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                    try:
+                        if 'tui_bridge.py' in ' '.join(proc.info['cmdline'] or []):
+                            print(f"Cleaning up bridge process: {proc.info['pid']}")
+                            proc.terminate()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+            except ImportError:
+                # psutil not available, skip cleanup
+                pass
+
             # Relaunch with correct Python
             result = subprocess.run(
                 [str(correct_python), sys.argv[0]] + sys.argv[1:],
@@ -47,15 +65,33 @@ import os
 import subprocess
 import time
 import atexit
+import json
 
 # Force console window if launched with pythonw.exe on Windows
 if sys.platform == 'win32' and not sys.stdout:
+    print("⚠️  Detected pythonw.exe - relaunching with python.exe for console window...")
+    # Clean up any existing bridge processes before relaunching
+    try:
+        import psutil
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if 'tui_bridge.py' in ' '.join(proc.info['cmdline'] or []):
+                    print(f"Cleaning up bridge process: {proc.info['pid']}")
+                    proc.terminate()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except ImportError:
+        # psutil not available, skip cleanup
+        pass
+
     # Relaunch with python.exe to get a console window
     python_exe = sys.executable.replace('pythonw.exe', 'python.exe')
     subprocess.Popen([python_exe] + sys.argv)
     sys.exit()
 
 from src.rp_client_tui import RPClientApp
+from src.update_checker import check_for_updates
+from src.version import get_current_version, is_semantic_version
 
 
 # Global bridge process tracker
@@ -138,10 +174,57 @@ def stop_bridge(process: subprocess.Popen) -> None:
             print(f"Error stopping bridge: {e}")
 
 
+def restart_bridge() -> None:
+    """Restart the bridge process.
+
+    This function is called from the TUI when the user presses F10.
+    """
+    global _bridge_process
+    if _bridge_process:
+        print("\n🔄 Restarting bridge...")
+        stop_bridge(_bridge_process)
+        time.sleep(0.5)  # Brief pause to ensure clean shutdown
+
+        # Get the RP directory from the bridge process arguments
+        # The bridge was started with the rp_dir.name, we need to reconstruct it
+        base_dir = Path(__file__).parent
+        rps_dir = base_dir / "RPs"
+        # We'll need to find the rp_dir - let's search for tui_active.flag in RPs directory
+        for item in rps_dir.iterdir():
+            if item.is_dir():
+                tui_flag = item / "state" / "tui_active.flag"
+                if tui_flag.exists():
+                    rp_dir = item
+                    _bridge_process = start_bridge(rp_dir, background=False)
+                    print("✅ Bridge restarted")
+                    return
+
+        raise Exception("Could not find active RP directory")
+
+
 def cleanup_bridge() -> None:
     """Cleanup function called on exit."""
     global _bridge_process
     if _bridge_process:
+        # First, try to signal bridge to shutdown gracefully by removing flag
+        try:
+            # Find and remove tui_active.flag to signal bridge to stop
+            base_dir = Path(__file__).parent
+            rps_dir = base_dir / "RPs"
+            for item in rps_dir.iterdir():
+                if item.is_dir():
+                    tui_flag = item / "state" / "tui_active.flag"
+                    if tui_flag.exists():
+                        tui_flag.unlink(missing_ok=True)
+                        print("Removed TUI active flag")
+                        # Give bridge a moment to see the flag is gone
+                        import time
+                        time.sleep(1)
+                        break
+        except Exception as e:
+            print(f"Warning: Could not remove TUI flag: {e}")
+
+        # Then terminate the process if it's still running
         stop_bridge(_bridge_process)
 
 
@@ -173,22 +256,97 @@ def select_rp_folder(rp_folders):
             sys.exit(0)
 
 
+def check_and_display_updates(config: dict) -> None:
+    """Check for updates and display notification if available.
+
+    Args:
+        config: Configuration dict with update check settings
+    """
+    # Check if update checking is enabled
+    if not config.get("check_for_updates", True):
+        return
+
+    try:
+        # Get cache duration from config (default 24 hours)
+        cache_duration = config.get("update_check_interval", 86400)
+
+        # Check for updates (with 3 second timeout)
+        result = check_for_updates(use_cache=True, cache_duration=cache_duration, timeout=3)
+
+        if result.available:
+            # Format version display
+            current_display = result.current if result.current else 'unknown'
+            latest_display = result.latest if result.latest else 'unknown'
+
+            # Show prominent update notification
+            print("\n" + "=" * 70)
+            print(" " * 20 + "UPDATE AVAILABLE" + " " * 34)
+            print("=" * 70)
+            print(f"  Current version:  {current_display}")
+            print(f"  Latest version:   {latest_display}")
+
+            # Show release info if it's a semantic version
+            if is_semantic_version(latest_display):
+                print(f"  New release available!")
+
+            print()
+            print("  To update, run:")
+            print("    git pull")
+            print("=" * 70)
+
+            # Pause so user can see the notification
+            input("\nPress Enter to continue...")
+            print()
+        elif not result.error:
+            # Silently succeed if up to date
+            pass
+        # Silently ignore errors (don't want to block startup)
+    except Exception:
+        # Don't let update check failures block the launcher
+        pass
+
+
 def main():
     """Main entry point with automatic folder detection."""
     global _bridge_process
 
     try:
         base_dir = Path(__file__).parent
+        rps_dir = base_dir / "RPs"
 
         # Check for --background flag
         background_mode = "--background" in sys.argv
         if background_mode:
             sys.argv.remove("--background")
 
+        # Check for --skip-update-check flag
+        skip_update_check = "--skip-update-check" in sys.argv
+        if skip_update_check:
+            sys.argv.remove("--skip-update-check")
+
+        # Load config for update check settings
+        config_file = base_dir / "config.json"
+        config = {}
+        if config_file.exists():
+            try:
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            except Exception:
+                pass
+
+        # Check for updates (unless skipped)
+        if not skip_update_check:
+            check_and_display_updates(config)
+
+        # Ensure RPs directory exists
+        if not rps_dir.exists():
+            print(f"Creating RPs directory...")
+            rps_dir.mkdir(parents=True, exist_ok=True)
+
         # If folder specified on command line, use it
         if len(sys.argv) >= 2 and not sys.argv[1].startswith("--"):
             rp_folder = sys.argv[1]
-            rp_dir = base_dir / rp_folder
+            rp_dir = rps_dir / rp_folder
 
             if not rp_dir.exists():
                 print(f"Error: RP folder not found: {rp_dir}")
@@ -200,8 +358,8 @@ def main():
                 input("\nPress Enter to exit...")
                 sys.exit(1)
         else:
-            # Scan for available RP folders
-            rp_folders = find_rp_folders(base_dir)
+            # Scan for available RP folders in RPs directory
+            rp_folders = find_rp_folders(rps_dir)
 
             if not rp_folders:
                 print("Error: No RP folders found.")
@@ -229,7 +387,7 @@ def main():
         # Run the TUI
         print(f"\nLaunching RP Client TUI for: {rp_dir.name}")
         print("=" * 50)
-        app = RPClientApp(rp_dir)
+        app = RPClientApp(rp_dir, bridge_restart_callback=restart_bridge)
         app.run()
 
         # If we get here, the app exited normally

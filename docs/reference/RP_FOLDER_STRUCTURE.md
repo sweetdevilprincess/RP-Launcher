@@ -66,7 +66,8 @@ RP Claude Code/                          # Main project folder
 ├── Roleplay 2/                          # Another RP (same structure)
 │   └── [Same structure as Roleplay 1]
 │
-├── CLAUDE.md                            # Main Claude Code instructions
+├── config/
+│   └── CLAUDE.md                        # Main Claude Code instructions
 │
 └── [Documentation files]                # Planning docs, design docs, etc.
 ```
@@ -81,10 +82,10 @@ RP Claude Code/                          # Main project folder
 
 **Contents**:
 - `.claude/` - Configuration and automation (shared)
+- `config/` - Configuration files including CLAUDE.md
 - `guidelines/` - Writing guides (shared across all RPs)
 - `templates/` - Template files for new RPs
 - Individual RP folders
-- `CLAUDE.md` - Main instructions
 - Documentation files
 
 ---

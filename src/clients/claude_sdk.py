@@ -203,7 +203,7 @@ class ClaudeSDKClient:
             cached_context: Context to cache (TIER_1 files) - will be cached by Claude
             session_id: Session ID to resume (optional, will use current session if None)
             stream: If True, yields chunks as they arrive. If False, returns full response.
-            thinking_mode: Thinking mode preset ("disabled", "think", "megathink", "ultrathink")
+            thinking_mode: Thinking mode preset ("disabled", "think", "think hard", "megathink", "think harder", "ultrathink")
             thinking_budget: Custom thinking token budget (overrides thinking_mode if provided)
             **options: Additional options to pass to Claude Code SDK
 
