@@ -67,58 +67,6 @@
 
 ## SCENE TYPE SPECIFIC GUIDELINES
 
-### SUSPENSE / STALKING SCENES
-**When to apply**: Surveillance, watching, following, lurking, hiding, boundary violations, privacy invasions, predatory behavior
-
-**Core Principles:**
-- **Asymmetric Awareness**: One character knows/sees more than the other
-- **Sensory Predation**: Emphasize what the observer notices (scent, sound, visual details)
-- **Violation Specificity**: Make privacy invasions concrete and detailed
-- **Tension Through Proximity**: Track physical distance and concealment
-
-**Specific Requirements:**
-- Show what the stalker observes in precise detail
-- Track the stalker's physical positioning and concealment
-- Emphasize sounds, scents, visual details the target is unaware of
-- Include the stalker's internal satisfaction/possessiveness
-- Show tactical patience and calculated risk-taking
-
-**Avoid:**
-- Generic "watching" without specific observed details
-- Omniscient narration that tells both perspectives equally
-- Vague descriptions of what's being observed
-- Making surveillance feel accidental rather than calculated
-
-**Example:**
-> The bedroom window on the third floor is uncurtained—just dark glass reflecting orange security lights. He can see her silhouette moving inside. Not details. Just shape. The light flicks off near the closet. On again in the bathroom. She's getting ready. For him. The bike's engine is still warm beneath him, ticking as it cools, and his phone glows with her text. "I'm ready for our date when you are 😊"
-
----
-
-### INTIMATE / SEXUAL SCENES
-**When to apply**: Kissing, touching, arousal, sexual contact, physical intimacy
-
-**Core Principles:**
-- **Asymmetric Experience**: Different sensations, timing, emotional states for each person
-- **Vulnerability Integration**: Authentic hesitation, limitation, emotional exposure
-- **Physiological Specificity**: Concrete, unique physical responses
-- **Environmental Grounding**: Setting actively contributes to sensory experience
-
-**Specific Requirements:**
-- Different pacing and focus for each participant
-- Honest admission of limitations and uncertainty
-- Specific body reactions and breathing patterns
-- Environmental textures and spatial constraints (cold air, rough fabric, hard surfaces)
-- Temperature contrasts and tactile details
-
-**Avoid:**
-- Both characters feeling identical pleasure simultaneously
-- Generic "waves of pleasure" or "heat pooling"
-- Flawless technique or perfect synchronization
-- Ignoring environmental discomfort (cold, awkward positioning, etc.)
-
-**Example:**
-> His hand slides up her thigh through the fishnets, rough palm catching on the diamond-weave pattern. The cold November air bites across her exposed skin, and she shivers—not from his touch, from the wind. His body blocks the worst of it, solid heat against her chest, but her legs are freezing. The bike's vibration travels through the seat into her thighs, making the metal bars in her nipples conduct sensation straight through thin fabric.
-
 ---
 
 ### DIALOGUE-HEAVY SCENES
