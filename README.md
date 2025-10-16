@@ -127,3 +127,99 @@ python launch_rp_tui.py "My Campaign Name"
 
 ---
 
+## 🎮 Usage
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| **Ctrl+Enter** | Send message |
+| **F1** | Help overlay |
+| **F2** | Character sheet + memory |
+| **F3** | Story arc + genome |
+| **F4** | Entity list |
+| **F5** | Scene notes |
+| **F6** | Module toggles |
+| **F7** | Status display |
+| **F8** | Settings |
+| **F10** | Restart bridge |
+| **Ctrl+Q** | Quit |
+
+### F-Key Overlays
+
+Press any F-key to open an overlay with relevant information:
+- **Character sheets** with current memory
+- **Story arc** progress and next developments
+- **Entity cards** (characters, locations, organizations)
+- **Scene notes** for current session
+- **Module toggles** (enable/disable automation)
+- **Status** (response count, arc progress, active characters)
+- **Settings** (API keys, models, thinking modes)
+
+---
+
+## ⚙️ Configuration
+
+### Global Config (`config/config.json`)
+```json
+{
+  "use_api_mode": false,
+  "thinking_mode": "megathink",
+  "check_for_updates": true
+}
+```
+
+### Per-RP Config (`{RP}/state/automation_config.json`)
+```json
+{
+  "auto_entity_cards": true,
+  "entity_mention_threshold": 2,
+  "auto_story_arc": true,
+  "arc_frequency": 50,
+  "auto_memory_update": true,
+  "memory_frequency": 15
+}
+```
+
+---
+
+## 🎨 Example: Memory System in Action
+
+**During Response 47:**
+```
+User: "I want to go to the Rose bar next week"
+    ↓
+Entity Analysis Agent:
+    ├─ Detects: "Rose bar" (Tier 2 - mentioned but absent)
+    └─ Extracts 5 key facts:
+        • Location: Downtown, near Bruno's
+        • Hours: Tue-Sat, 8pm-2am
+        • Known for: Live jazz music
+        • Owner: Marcus
+        • Atmosphere: Upscale, dim lighting
+    ↓
+Claude: "Oh, that's the one by Bruno's, right? 
+         I heard they have great jazz on Thursdays."
+    ↓
+Background Agents (after response):
+    ├─ Memory Creation: New memory for character about planning visit
+    ├─ Knowledge Extraction: Bar hours, location confirmed
+    └─ Plot Thread: "Visit to Rose bar" added (low priority)
+```
+
+**Next session (Response 65):**
+```
+User: "We're at the Rose bar now"
+    ↓
+Memory Extraction Agent:
+    └─ Loads relevant memory: "Planning to visit Rose bar (Response 47)"
+    ↓
+Entity Analysis Agent:
+    └─ Rose bar now Tier 1 (scene participant) - full card loaded
+    ↓
+Claude: "The dim lighting and soft jazz create exactly 
+         the atmosphere you were hoping for when you 
+         suggested this place two weeks ago..."
+```
+
+**Perfect continuity without manual tracking.**
