@@ -1,68 +1,97 @@
-# RP Claude Code
+# RP Launcher - AI-Powered Roleplay Campaign Manager
 
-An advanced roleplay launcher for Claude Code with intelligent automation, prompt caching, and background analysis. Create immersive, long-form roleplays with AI assistance while maintaining perfect continuity and consistency.
+**A sophisticated roleplay automation system that feels like having a DM/GM, not a chatbot.**
+
+Built for long-form, persistent storytelling with intelligent continuity tracking, automated memory management, and context-aware responses.
+
+---
+
+## 🎯 What Is This?
+
+RP Launcher is a **terminal-based roleplay system** that combines Claude AI with intelligent automation to manage complex, multi-session campaigns. Unlike traditional chatbots, it:
+
+- **Remembers everything** - Automatic memory extraction and retrieval
+- **Tracks relationships** - Dynamic character relationship monitoring
+- **Manages plot threads** - Active thread detection and resolution tracking
+- **Maintains consistency** - Entity cards, world facts, and contradiction detection
+- **Optimizes context** - Smart tier-based loading (54-96% token reduction)
+- **Feels like a DM** - Campaign continuity, not conversation threads
 
 ---
 
 ## ✨ Key Features
 
-### 🚀 Quick Setup System
-- **One-command RP creation** - Complete RP setup with templates in seconds
-- **Comprehensive templates** - Character sheets, story guides, and all required files
-- **Three user paths** - 5-minute quick start, 30-minute guided, or 2-minute expert setup
+### 🤖 **10-Agent Automation System**
+- **4 Immediate Agents** (pre-response, 3-5s): Entity analysis, fact extraction, memory retrieval, plot thread loading
+- **6 Background Agents** (post-response, hidden): Memory creation, relationship tracking, plot detection, knowledge extraction, response analysis, contradiction detection
 
-### 🧠 Extended Thinking Modes
-- **6 thinking modes** - From disabled to ultrathink (5k-32k tokens)
-- **Granular control** - Match thinking depth to task complexity
-- **Performance optimization** - Avoid over-thinking simple tasks
+### 🧠 **Intelligent Memory System**
+- Multi-dimensional memory indexing (characters, location, tone, timestamp, relationship impact)
+- Semantic memory retrieval (2-5 most relevant memories per character)
+- Automatic memory creation from significant moments
+- 96% token reduction vs loading all memories
 
-### 🤖 Background Automation
-- **Intelligent agents** - Automatic entity extraction, memory creation, and story arc analysis
-- **Non-blocking processing** - Agents work in background while you write
-- **Performance metrics** - Detailed timing breakdowns and optimization recommendations
+### 📊 **Campaign Management**
+- Entity cards for characters, locations, organizations
+- Relationship tracking with tier system (enemy → stranger → friend → close friend)
+- Plot thread lifecycle management (active → critical → resolved)
+- World-building knowledge base with fact extraction
+- Story arc generation and tracking
 
-### 💾 Prompt Caching
-- **54-61% token reduction** - Massive cost savings on long RPs
-- **Automatic cache management** - Smart invalidation and updates
-- **Cross-session persistence** - Cache survives restarts
+### ⚡ **Performance Optimization**
+- Prompt caching (54-61% token savings)
+- Tier-based entity loading (Tier 1: full, Tier 2: facts only, Tier 3: skip)
+- Debounced file writes (50-80% I/O reduction)
+- Parallel agent execution (ThreadPoolExecutor)
+- Hidden background processing (completes while you type)
 
-### 🔄 Seamless Workflow
-- **F10 bridge restart** - Apply settings without closing launcher
-- **F9 settings screen** - Configure API keys, thinking modes, and more
-- **F1-F8 overlays** - Quick access to memory, characters, arc, and references
+### 🎨 **Rich Terminal Interface**
+- Multi-line text input with Ctrl+Enter to send
+- Real-time context display (chapter, time, location, characters)
+- F-key overlays (character sheets, story arc, entities, settings)
+- Progress tracking and status indicators
+- Keyboard shortcuts for quick access
 
-### 🌐 Flexible API Support
-- **OpenRouter integration** - Use DeepSeek, Claude, GPT, and other models
-- **Direct Anthropic API** - Use Claude directly with your API key
-- **Model switching** - Change models without code changes
+---
 
-### 📦 Auto Updates
-- **GitHub update checker** - Automatic notification of new versions
-- **Semantic versioning** - Clear version tracking with git tags
-- **24-hour caching** - Respects API rate limits
+## 🤔 Why Does This Exist?
+tldr: I hate the chatbot feel and I am sure other people to too.
+
+**Problem:** Existing tools like SillyTavern are optimized for **chatbot interaction** - short conversations with character cards. They don't handle:
+- Long-form campaigns (50+ sessions)
+- Plot thread management
+- Persistent world-building
+- Campaign continuity across weeks/months
+- DM/GM-style storytelling
+
+**Solution:** RP Launcher is built from the ground up for **persistent campaign management** with:
+- Automated continuity tracking
+- Smart context management (only loads relevant info)
+- Background analysis (doesn't slow you down)
+- Multi-dimensional memory system
+- Campaign-first architecture
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- **Python 3.10+**
-- **Node.js 18+** (for SDK bridge)
-- **Git**
-- **API Key**: Anthropic or OpenRouter
+- Python 3.10+
+- Node.js 18+ (for SDK bridge)
+- Git
+- API Key: Anthropic (for Claude) or OpenRouter (for DeepSeek)
 
 ### Installation
 
 ```bash
 # Clone repository
 git clone https://github.com/sweetdevilprincess/RP-Launcher.git
-cd Rp-Launcher
+cd RP-Launcher
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Install Node dependencies
+# Install Node dependencies (for SDK bridge)
 cd src
 npm install
 cd ..
@@ -70,177 +99,31 @@ cd ..
 
 ### Create Your First RP
 
-Use the quick setup script to create a complete RP in one command:
+**Coming soon is a better thing to do this**
 
 ```bash
-python setup/quick_setup.py "My RP Name"
+# Use quick setup script
+python setup/quick_setup.py "My Campaign Name"
+
+# This creates:
+# - Complete folder structure
+# - Character templates
+# - Story guidance files
+# - State tracking files
+# - Configuration
 ```
 
-This creates:
-- Complete folder structure
-- Character templates ({{user}}.md, {{char}}.md)
-- Story guidance files (AUTHOR'S_NOTES.md, STORY_GENOME.md)
-- State files and configuration
-- Example chapter template
-
-### Configure API Keys
-
-Launch the system and press **F9** to configure:
+### Launch
 
 ```bash
+# Auto-detect single RP or show menu for multiple
 python launch_rp_tui.py
-```
 
-- **Anthropic API key** (for Claude direct) - starts with `sk-ant-`
-- **OpenRouter API key** (for DeepSeek/other models) - starts with `sk-or-v1-`
+# Or specify RP name
+python launch_rp_tui.py "My Campaign Name"
 
-### Start Writing!
-
-Press **Ctrl+Enter** to send messages, **F1-F8** for quick reference overlays, **F10** to restart the bridge after settings changes.
-
----
-
-## 📖 Documentation
-
-### Getting Started
-- **[Quick Start Guide](docs/guides/QUICK_START.md)** - 5-minute setup
-- **[Setup Guide](setup/README.md)** - Comprehensive setup instructions
-- **[Setup Checklist](setup/CHECKLIST.md)** - Verify your installation
-- **[Creating Your First RP](setup/guides/02_CREATING_YOUR_FIRST_RP.md)** - Complete walkthrough
-
-### User Guides
-- **[Launcher Guide](docs/guides/LAUNCHER_GUIDE.md)** - Using the TUI interface
-- **[Thinking Modes](docs/THINKING_MODES.md)** - Choosing the right thinking mode (6 modes explained)
-- **[Automation Guide](docs/guides/AUTOMATION_GUIDE.md)** - Background agents and automation
-- **[System Overview](docs/guides/SYSTEM_OVERVIEW.md)** - How everything works together
-
-### Technical Reference
-- **[RP System Overview](docs/guides/RP_SYSTEM_OVERVIEW.md)** - RP folder structure and file reference
-- **[Update Checker](docs/guides/UPDATE_CHECKER.md)** - Auto-update system documentation
-- **[Planned Features](docs/planned_features/)** - Upcoming features and roadmap
-
----
-
-## 🎯 Key Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| **Ctrl+Enter** | Send message to Claude |
-| **F9** | Open settings (API keys, thinking mode, model) |
-| **F10** | Restart bridge (apply settings changes) |
-| **F1** | Help overlay |
-| **F2** | Memory overlay |
-| **F3** | Story arc overlay |
-| **F4** | Characters overlay |
-| **F5** | Scene notes overlay |
-| **F6** | Entities overlay |
-| **F7** | Story genome overlay |
-| **F8** | Current state overlay |
-
----
-
-## 🧠 Thinking Modes
-
-| Mode | Token Budget | Use Case | Speed Impact |
-|------|--------------|----------|--------------|
-| **disabled** | 0 | No thinking - fastest responses | Baseline |
-| **think** | ~5,000 | Quick planning, simple tasks | +5-10s |
-| **think hard** | ~10,000 | Feature design, debugging | +10-20s |
-| **megathink** | 10,000 | Standard reasoning (default) | +10-20s |
-| **think harder** | ~25,000 | Complex architecture decisions | +30-60s |
-| **ultrathink** | 31,999 | System design, major refactoring | +1-3min |
-
-Configure in settings (F9) or in `config/config.json`.
-
----
-
-## 📊 Example Project Structure
-
-```
-RP Claude Code/
-├── README.md                   # Main project overview
-├── launch_rp_tui.py           # Main launcher (start here!)
-├── requirements.txt            # Python dependencies
-├── config/                     # Configuration files
-│   ├── config.json            # Main configuration
-│   ├── CLAUDE.md              # Project instructions for Claude Code
-│   ├── guidelines/            # Custom guidelines
-│   └── templates/             # File templates
-├── docs/                       # Documentation
-│   ├── THINKING_MODES.md      # Thinking mode documentation
-│   ├── guides/                # User guides
-│   ├── planned_features/      # Roadmap
-│   └── changelogs/            # Release notes
-├── setup/                      # Setup system
-│   ├── quick_setup.py         # One-command RP creation
-│   ├── README.md              # Setup documentation
-│   └── templates/             # RP templates
-├── src/                        # Source code
-│   ├── rp_client_tui.py       # TUI application
-│   ├── tui_bridge.py          # Bridge process
-│   ├── clients/               # API clients
-│   └── automation/            # Background agents
-└── Example RP/                 # Example RP for reference
+# Start typing and press Ctrl+Enter to send!
 ```
 
 ---
 
-## 🏗️ Architecture
-
-### Three-Process System
-
-1. **TUI (Textual)** - User interface
-2. **Bridge** - Connects TUI to Claude Code/API
-3. **Claude Code/API** - AI inference
-
-### Two Operating Modes
-
-**SDK Mode (Default)**:
-- Uses Claude Code SDK bridge
-- Full feature support
-- Auto-detects VS Code integration
-
-**API Mode**:
-- Direct API calls to Anthropic or OpenRouter
-- No VS Code required
-- Configure in settings (F9)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! If you'd like to contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-See [planned features](docs/planned_features/) for areas that need work.
-
----
-
-## 📜 License
-
-[Add your license here - MIT, Apache 2.0, etc.]
-
----
-
-## 🌟 Community
-
-- **[GitHub Issues](https://github.com/[USERNAME]/[REPO]/issues)** - Bug reports and feature requests
-- **[GitHub Discussions](https://github.com/[USERNAME]/[REPO]/discussions)** - Questions and community support
-
----
-
-## 🎯 Credits
-
-Created by [Your Name/Username]
-
-Powered by Claude (Anthropic) and DeepSeek
-
----
-
-**Version**: 1.0.0 | **Last Updated**: October 2025
-
-Ready to create immersive roleplays? Run `python setup/quick_setup.py "My RP Name"` to get started!
