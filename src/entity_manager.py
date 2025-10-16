@@ -4,12 +4,15 @@ Handles loading, parsing, and indexing of entity cards (characters, locations, o
 """
 
 import re
+import json
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 
 from src.file_manager import FileManager
+from src.state_templates import StateTemplates
+from src.clients.deepseek import call_deepseek, MissingAPIKeyError
 
 
 class EntityType(Enum):
@@ -540,4 +543,166 @@ class EntityManager:
 
         except Exception as e:
             print(f"⚠️  Error reloading entity {name}: {e}")
+            return False
+
+    def create_preference_file(self, character_name: str) -> bool:
+        """
+        Create a relationship preference file for a character.
+
+        This generates a preferences JSON template file that defines what traits
+        the character likes, dislikes, and hates. Works for ANY character,
+        regardless of whether they have a Personality Core.
+
+        Args:
+            character_name: Name of the character
+
+        Returns:
+            True if preference file created successfully, False otherwise
+        """
+        # Ensure relationships directory exists
+        relationships_dir = self.rp_dir / "relationships"
+        relationships_dir.mkdir(exist_ok=True)
+
+        # Check if file already exists
+        preference_file = relationships_dir / f"{character_name}_preferences.json"
+        if preference_file.exists():
+            print(f"ℹ️  Preference file already exists for {character_name}")
+            return True
+
+        # Generate preference file using template
+        preference_data = StateTemplates.character_preferences(character_name)
+
+        # Save to file
+        try:
+            self.fm.write_json(preference_file, preference_data)
+            print(f"✅ Created preference file for {character_name}: {preference_file.name}")
+            print(f"   📝 Edit this file to define what {character_name} likes/dislikes/hates")
+            return True
+        except Exception as e:
+            print(f"❌ Error creating preference file for {character_name}: {e}")
+            return False
+
+    def auto_generate_preferences(self, character_name: str) -> bool:
+        """
+        Auto-generate relationship preferences using DeepSeek analysis of Personality Core.
+
+        This uses DeepSeek to analyze a character's Personality Core and automatically
+        generate appropriate likes, dislikes, and hates based on their personality.
+
+        Args:
+            character_name: Name of the character
+
+        Returns:
+            True if preferences generated successfully, False otherwise
+        """
+        # Get character entity
+        entity = self.get_entity(character_name)
+        if not entity:
+            print(f"❌ Character '{character_name}' not found")
+            return False
+
+        if not entity.personality_core:
+            print(f"⚠️  Character '{character_name}' has no Personality Core - cannot auto-generate preferences")
+            print(f"   Add a Personality Core section to the entity card first")
+            return False
+
+        # Ensure relationships directory exists
+        relationships_dir = self.rp_dir / "relationships"
+        relationships_dir.mkdir(exist_ok=True)
+
+        preference_file = relationships_dir / f"{character_name}_preferences.json"
+
+        print(f"🤖 Analyzing {character_name}'s personality to generate preferences...")
+
+        # Create prompt for DeepSeek
+        prompt = f"""Analyze this character's Personality Core and generate relationship preferences.
+
+**Character Name**: {character_name}
+
+**Personality Core**:
+{entity.personality_core}
+
+**Task**: Based on this personality, generate a list of traits this character would like, dislike, and hate in relationships with others.
+
+**Guidelines**:
+- Be specific to THIS character's personality (not generic traits)
+- Consider their core values, flaws, speaking style, and behaviors
+- Likes should have +5 to +15 points (most important values get higher points)
+- Dislikes should have -5 to -10 points
+- Hates should have -20 to -30 points (dealbreakers only)
+- Include 3-5 items in each category
+- Each item should have a "trait" and a "reason" explaining why based on personality
+
+Return ONLY valid JSON in this exact format:
+{{
+  "likes": [
+    {{"trait": "trait_name", "points": 10, "reason": "why this character values this"}},
+    ...
+  ],
+  "dislikes": [
+    {{"trait": "trait_name", "points": -5, "reason": "why this bothers this character"}},
+    ...
+  ],
+  "hates": [
+    {{"trait": "trait_name", "points": -25, "reason": "why this is a dealbreaker"}},
+    ...
+  ]
+}}"""
+
+        try:
+            # Query DeepSeek
+            response = call_deepseek(
+                prompt=prompt,
+                rp_dir=self.rp_dir,
+                max_tokens=2000,
+                temperature=0.3
+            )
+
+            # Parse JSON response
+            # Extract JSON from response (in case there's extra text)
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if not json_match:
+                print(f"❌ DeepSeek response was not valid JSON")
+                return False
+
+            preferences_data = json.loads(json_match.group())
+
+            # Validate structure
+            required_keys = ["likes", "dislikes", "hates"]
+            if not all(key in preferences_data for key in required_keys):
+                print(f"❌ Generated preferences missing required keys")
+                return False
+
+            # Build full preference file
+            full_preferences = {
+                "character_name": character_name,
+                "preferences": preferences_data,
+                "baseline_disposition": 0,
+                "notes": f"Auto-generated from Personality Core using DeepSeek analysis",
+                "generated_at": json.dumps({"timestamp": "auto-generated"})
+            }
+
+            # Save to file
+            self.fm.write_json(preference_file, full_preferences)
+            print(f"✅ Auto-generated preferences for {character_name}!")
+            print(f"   📝 Saved to: {preference_file.name}")
+            print(f"   Likes: {len(preferences_data['likes'])} traits")
+            print(f"   Dislikes: {len(preferences_data['dislikes'])} traits")
+            print(f"   Hates: {len(preferences_data['hates'])} traits")
+            print(f"   💡 Review and adjust the file as needed")
+
+            return True
+
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse DeepSeek response as JSON: {e}")
+            print(f"   Response: {response[:200]}...")
+            return False
+        except MissingAPIKeyError as e:
+            print(f"❌ {e}")
+            print(f"   Set OPENROUTER_API_KEY environment variable or add to config.json")
+            return False
+        except Exception as e:
+            print(f"❌ Error generating preferences: {e}")
+            import traceback
+            traceback.print_exc()
             return False

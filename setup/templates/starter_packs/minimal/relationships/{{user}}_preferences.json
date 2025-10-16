@@ -1,0 +1,48 @@
+{
+  "character_name": "{{user}}",
+  "preferences": {
+    "likes": [
+      {
+        "trait": "honesty",
+        "points": 10,
+        "reason": "You appreciate when people are direct and truthful"
+      },
+      {
+        "trait": "kindness",
+        "points": 8,
+        "reason": "Acts of compassion and empathy resonate with you"
+      },
+      {
+        "trait": "humor",
+        "points": 5,
+        "reason": "You enjoy people who can make you laugh"
+      }
+    ],
+    "dislikes": [
+      {
+        "trait": "arrogance",
+        "points": -8,
+        "reason": "You find excessive pride off-putting"
+      },
+      {
+        "trait": "manipulation",
+        "points": -12,
+        "reason": "Being used or deceived bothers you significantly"
+      }
+    ],
+    "hates": [
+      {
+        "trait": "cruelty",
+        "points": -25,
+        "reason": "Intentional harm to others is your dealbreaker"
+      },
+      {
+        "trait": "betrayal",
+        "points": -30,
+        "reason": "Breaking trust is nearly unforgivable to you"
+      }
+    ]
+  },
+  "baseline_disposition": 0,
+  "notes": "Customize these preferences to match your character's personality. Be specific - what does YOUR character value, not what people generally value? Replace these examples with traits that matter to your specific character. See RELATIONSHIP_GUIDE.md for help."
+}

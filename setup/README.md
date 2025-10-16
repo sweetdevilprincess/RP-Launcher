@@ -39,22 +39,27 @@ python launch_rp_tui.py "My New RP"
 
 ## 📚 Documentation
 
-### Setup Guides
+### Quick Links to Main Guides
 
-| Guide | Purpose | Time | Audience |
-|-------|---------|------|----------|
-| [**First Time Setup**](guides/01_FIRST_TIME_SETUP.md) | System installation & config | 10 min | New users |
-| [**Creating Your First RP**](guides/02_CREATING_YOUR_FIRST_RP.md) | Step-by-step RP creation | 30 min | Everyone |
-| [**Understanding Structure**](guides/03_UNDERSTANDING_STRUCTURE.md) | What each file does | 15 min | Curious users |
-| [**Writing Your Story**](guides/04_WRITING_YOUR_STORY.md) | Tips & best practices | 20 min | Writers |
-| [**Advanced Features**](guides/05_ADVANCED_FEATURES.md) | Power user features | 30 min | Advanced |
-| [**Troubleshooting**](guides/99_TROUBLESHOOTING.md) | Fix common problems | As needed | Having issues |
+| Guide | Purpose | Audience |
+|-------|---------|----------|
+| [**Creating Your First RP**](guides/02_CREATING_YOUR_FIRST_RP.md) | Step-by-step RP creation | Everyone |
+| [**Project CLAUDE.md**](../CLAUDE.md) | Project guidelines and file locations | Developers |
+| [**DOCUMENTATION_INDEX.md**](../Working\ Guides/DOCUMENTATION_INDEX.md) | Navigation hub for all system docs | All users |
 
-### Quick Reference
+### Comprehensive Documentation Available
+
+For detailed information beyond setup, see the **Working Guides** folder:
+
+- **[RP_DIRECTORY_MAP.md](../Working\ Guides/RP_DIRECTORY_MAP.md)** - RP folder structure & file interactions
+- **[LAUNCHER_DOCUMENTATION.md](../Working\ Guides/LAUNCHER_DOCUMENTATION.md)** - How to use the launcher (F-keys, settings)
+- **[TUI_BRIDGE_DOCUMENTATION.md](../Working\ Guides/TUI_BRIDGE_DOCUMENTATION.md)** - How the backend works (SDK vs API modes)
+- **[SYSTEM_ARCHITECTURE.md](../Working\ Guides/SYSTEM_ARCHITECTURE.md)** - Overall system design
+
+### Setup Verification
 
 - **Checklist:** [`CHECKLIST.md`](CHECKLIST.md) - Verify your setup is complete
-- **Structure:** See `docs/reference/RP_FOLDER_STRUCTURE.md` for detailed structure
-- **Examples:** Check `RPs/Example RP/` folder for reference
+- **Examples:** Check `RPs/Example RP/` or `RPs/Lilith and Silas/` folders for reference
 
 ---
 
@@ -74,8 +79,11 @@ python setup/quick_setup.py "RP Name"
 
 **Options:**
 ```bash
-# Choose a template
-python setup/quick_setup.py "RP Name" --template fantasy
+# Use minimal template (bare essentials)
+python setup/quick_setup.py "RP Name" --template minimal
+
+# Use fantasy adventure template (pre-made fantasy content)
+python setup/quick_setup.py "Epic Quest" --template fantasy_adventure
 
 # Custom location
 python setup/quick_setup.py "RP Name" --path "/path/to/rps"
@@ -84,21 +92,21 @@ python setup/quick_setup.py "RP Name" --path "/path/to/rps"
 python setup/quick_setup.py "RP Name" --overwrite
 ```
 
-#### 2. Interactive Wizard (Coming Soon)
+### Planned Tools (Coming Soon)
+
+#### Interactive Wizard
 ```bash
 python setup/new_rp_wizard.py
 ```
 Step-by-step guided setup with questions and examples.
 
-### Validation & Maintenance Tools
-
-#### Validate RP Structure (Coming Soon)
+#### Validate RP Structure
 ```bash
 python setup/scripts/validate_rp.py "RP Name"
 ```
 Checks if your RP has all required files and correct structure.
 
-#### Fix Common Issues (Coming Soon)
+#### Fix Common Issues
 ```bash
 python setup/scripts/fix_structure.py "RP Name"
 ```
@@ -113,7 +121,7 @@ Auto-creates missing files and fixes formatting issues.
 | Template | Description | Best For |
 |----------|-------------|----------|
 | **[minimal](templates/starter_packs/minimal/)** | Bare essentials only | Experienced users, custom setups |
-| **fantasy_adventure** *(coming soon)* | Pre-made fantasy RP | Knights, magic, quests |
+| **[fantasy_adventure](templates/starter_packs/fantasy_adventure/)** | Pre-made fantasy RP | Knights, magic, quests, epic adventures |
 | **modern_romance** *(coming soon)* | Contemporary setting | Real-world stories, relationships |
 | **scifi_exploration** *(coming soon)* | Space & future | Technology, discovery |
 
@@ -121,10 +129,10 @@ Auto-creates missing files and fixes formatting issues.
 
 Each template pack includes:
 - ✅ Complete directory structure
-- ✅ All required state files
-- ✅ Example content in key files
-- ✅ Genre-appropriate defaults
-- ✅ Ready to use immediately
+- ✅ Core story files (AUTHOR'S_NOTES.md, STORY_GENOME.md, etc.)
+- ✅ Character sheet templates
+- ✅ Starter chapter with guidance
+- ✅ Ready to use immediately (state files auto-generate on first run)
 
 ### Using Templates
 
@@ -143,49 +151,56 @@ python setup/quick_setup.py "My RP" --template minimal
 
 ## 🎯 What You Get
 
-When you create a new RP, you'll have:
+When you create a new RP, the minimal template includes:
 
-### Core Files
-- **`{RP Name}.md`** - RP overview & metadata
+### Files You Edit
+- **`{RP Name}.md`** - RP overview & metadata (ROLEPLAY_OVERVIEW - rename this to your RP name)
 - **`AUTHOR'S_NOTES.md`** - Absolute story rules (what must/must not happen)
 - **`STORY_GENOME.md`** - Intended story direction & themes
+- **`NAMING_CONVENTIONS.md`** - World naming patterns (characters, places, factions)
 - **`SCENE_NOTES.md`** - Current session guidance
-- **`CURRENT_STATUS.md`** - Auto-maintained current state
+
+### Files That Auto-Generate
+When you run the RP, `initialize_rp.py` automatically creates all state files in the `state/` directory:
+
+See **[RP_DIRECTORY_MAP.md](../Working\ Guides/RP_DIRECTORY_MAP.md#state-directory-files)** for complete state files reference. These include:
+
+- **`state/current_state.md`** - Story position tracking
+- **`state/story_arc.md`** - Current story arc progress
+- **`state/automation_config.json`** - Automation settings
+- **`state/plot_threads_master.md`** - Active plot threads
+- And more (see docs for complete list)...
 
 ### Directories
 - **`chapters/`** - Story chapters (your RP content)
-- **`characters/`** - Character sheets
+- **`characters/`** - Character sheets (you create {{user}}.md and {{char}}.md)
+- **`state/`** - Auto-created tracking & automation files
+- **`memories/`** - Auto-created character-specific memory files
+- **`relationships/`** - Character preference files for relationship tracking
 - **`entities/`** - Auto-generated entity cards
-- **`state/`** - Tracking & automation files
-- **`memories/`** - Character-specific memory files
-- **`relationships/`** - Relationship tracking
 - **`sessions/`** - Session logs
 - **`locations/`** - Location details
-
-### State Files (Auto-managed)
-- **`state/plot_threads_master.md`** - Active plot threads
-- **`state/story_arc.md`** - Current story arc progress
-- **`state/automation_config.json`** - Automation settings
-- **`state/entity_tracker.json`** - Entity mention tracking
-- And more...
+- **`exports/`** - Exported content
 
 ---
 
 ## ❓ Common Questions
 
 ### Q: Do I need to fill out every template?
-**A:** No! Only these are required:
+**A:** No! Here's what's actually required:
 - Your RP name folder must exist
-- `state/` directory with basic files (auto-created by setup scripts)
-- At least one chapter file
+- `AUTHOR'S_NOTES.md`, `STORY_GENOME.md`, `NAMING_CONVENTIONS.md`, `SCENE_NOTES.md` (automation needs these)
+- `characters/{{user}}.md` (your character sheet)
+- At least one character in `characters/{{char}}.md`
+- One chapter file (can start with `chapters/chapter_001.md`)
 
-Everything else is optional but helpful.
+State files auto-generate on first run - you don't need to create them!
 
 ### Q: Can I skip the templates and start writing?
 **A:** Yes! The minimal template gives you just the structure. You can start writing immediately in `chapters/chapter_001.md`.
 
 ### Q: What if I mess up the setup?
-**A:** Use the validation tool (coming soon) to check what's wrong, or just delete the RP folder and start over with the setup script.
+**A:** Delete the RP folder and run the setup script again. A validation tool is planned but not yet available. For troubleshooting help, check the main **[DOCUMENTATION_INDEX.md](../Working\ Guides/DOCUMENTATION_INDEX.md)** for guidance.
 
 ### Q: Can I have multiple RPs?
 **A:** Absolutely! Create as many as you want. The launcher will let you choose which one to use.

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/npm/@anthropic-ai/claude-code@latest/schemas/settings.schema.json",
+
+  "model": "sonnet-4.5",
+
+  "alwaysThinkingEnabled": true,
+
+  "maxTokens": 200000,
+
+  "permissions": {
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Bash",
+      "Glob",
+      "Grep",
+      "TodoWrite",
+      "Task",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "allowedPaths": {
+      "read": [
+        "**/*"
+      ],
+      "write": [
+        "**/*.py",
+        "**/*.md",
+        "**/*.json",
+        "**/*.txt",
+        "**/*.js",
+        "**/*.ts"
+      ]
+    }
+  },
+
+  "hooks": {
+    "PreToolUse": {
+      "Read": "# Verify file exists and is within project scope",
+      "Write": "# Ensure we're following patterns and not creating unnecessary files",
+      "Edit": "# Verify we're editing existing code correctly"
+    },
+    "PostToolUse": {
+      "Write": "# Reminder: Update CHANGELOG if this was a significant change",
+      "Edit": "# Reminder: Update documentation if behavior changed"
+    },
+    "UserPromptSubmit": "# Check: Have I read CLAUDE.md this session? Is TodoWrite list current?"
+  },
+
+  "mcpServers": {},
+
+  "settingSources": [
+    "project"
+  ],
+
+  "projectInstructions": {
+    "required": [
+      "CLAUDE.md must be read at session start",
+      "TodoWrite list must be checked before starting work",
+      "Documentation must be updated with all code changes",
+      "CHANGELOG must be updated for significant changes",
+      "Follow established patterns from existing code",
+      "Test before marking tasks complete"
+    ],
+    "workflow": {
+      "initialization": [
+        "Read CLAUDE.md",
+        "Check TodoWrite list",
+        "Review relevant Working Guides documentation",
+        "Verify understanding of current task"
+      ],
+      "development": [
+        "Read existing code before modifying",
+        "Follow patterns from similar components",
+        "Use FSWriteQueue for file writes",
+        "Include comprehensive docstrings",
+        "Handle errors gracefully"
+      ],
+      "completion": [
+        "Update affected documentation",
+        "Update CHANGELOG with changes",
+        "Mark TodoWrite tasks complete",
+        "Verify all tests pass"
+      ]
+    },
+    "documentation": {
+      "structure": "Working Guides/",
+      "index": "Working Guides/DOCUMENTATION_INDEX.md",
+      "changelog": "docs/changelogs/CHANGELOG_2025-10-16_1.0.1.md",
+      "mustUpdate": [
+        "When adding agents: AGENT_DOCUMENTATION.md",
+        "When changing components: SUPPORTING_COMPONENTS.md, COMPONENT_DATA_FLOW.md",
+        "When modifying architecture: SYSTEM_ARCHITECTURE.md",
+        "Always: CHANGELOG_[DATE_VERSION].md"
+      ]
+    },
+    "keyPrinciples": [
+      "Documentation-Driven Development: Read docs before coding, update docs with code",
+      "Verification Over Assumptions: Never assume, always verify",
+      "Iteration Over Recreation: Edit existing files rather than creating new ones",
+      "Context Management: Proactively signal when context fills, never rely on /compact"
+    ]
+  },
+
+  "outputStyle": "rp-development",
+
+  "contextManagement": {
+    "proactiveSignaling": true,
+    "signalInterval": 30,
+    "criticalContextPriority": [
+      "Current task/goal",
+      "CLAUDE.md guidelines",
+      "File paths and recent modifications",
+      "Decisions made this session",
+      "TodoWrite list status"
+    ],
+    "preserveStrategy": "Reference documentation instead of carrying all context in conversation"
+  },
+
+  "agentDevelopment": {
+    "requiredPattern": "5-method pattern (get_agent_id, get_description, gather_data, build_prompt, format_output)",
+    "mustRead": [
+      "Working Guides/AGENT_DOCUMENTATION.md",
+      "Working Guides/AGENT_DEVELOPMENT_GUIDE.md"
+    ],
+    "integrationChecklist": [
+      "Register in AgentFactory",
+      "Add to automation_config.json",
+      "Update AGENT_DOCUMENTATION.md",
+      "Update COMPONENT_DATA_FLOW.md if data flow changed",
+      "Update SYSTEM_ARCHITECTURE.md if architecture changed",
+      "Update CHANGELOG"
+    ]
+  },
+
+  "codeStandards": {
+    "doAlways": [
+      "Use FSWriteQueue for file writes (never direct writes)",
+      "Handle errors gracefully (no exceptions in pipeline)",
+      "Log important operations to hook.log",
+      "Use TypeHints in function signatures",
+      "Include comprehensive docstrings",
+      "Match naming conventions from similar files"
+    ],
+    "doNever": [
+      "Create new patterns when existing ones work",
+      "Write files directly (use FSWriteQueue)",
+      "Raise exceptions in pipeline code",
+      "Skip docstrings",
+      "Change documented behavior without updating docs",
+      "Leave code undocumented",
+      "Create documentation files proactively (only when requested)"
+    ]
+  },
+
+  "fileLocations": {
+    "documentation": {
+      "root": "Working Guides/",
+      "changelogs": "docs/changelogs/"
+    },
+    "code": {
+      "agents": "src/automation/agents/",
+      "orchestrator": "src/automation/orchestrator.py",
+      "fileManager": "src/file_manager.py",
+      "entityManager": "src/entity_manager.py"
+    },
+    "state": {
+      "config": "state/automation_config.json",
+      "counter": "state/response_counter.json",
+      "analysis": "state/agent_analysis.json",
+      "currentState": "state/current_state.md",
+      "logs": "state/hook.log"
+    }
+  },
+
+  "version": "1.0.1",
+  "lastUpdated": "2025-10-16"
+}

@@ -127,8 +127,8 @@ def get_arc_progress(counter_file: Path, arc_frequency: int = 50) -> tuple[int, 
 # OVERLAY SCREENS
 # =============================================================================
 
-class MemoryOverlay(ModalScreen):
-    """Overlay for viewing user memory (Ctrl+M)"""
+class CharacterSheetOverlay(ModalScreen):
+    """Overlay for viewing {{user}} character sheet (F2) - combines Memory + character info"""
 
     BINDINGS = [("escape", "dismiss", "Close")]
 
@@ -137,14 +137,44 @@ class MemoryOverlay(ModalScreen):
         self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
-        memory_file = self.rp_dir / "state" / "user_memory.md"
-        content = read_file(memory_file)
+        # Build combined character sheet
+        content = "# {{user}} Character Sheet\n\n"
 
-        if not content:
-            content = "# User Memory\n\n*Memory file not found. Use `/memory` command to create.*"
+        # Section 1: Memory
+        memory_file = self.rp_dir / "state" / "user_memory.md"
+        memory_content = read_file(memory_file)
+
+        if memory_content:
+            content += "## 📖 Memory\n\n"
+            # Strip the header if the memory file has one
+            if memory_content.startswith("# "):
+                memory_content = "\n".join(memory_content.split("\n")[1:])
+            content += memory_content + "\n\n"
+        else:
+            content += "## 📖 Memory\n\n*Memory file not found. Use `/memory` command to create.*\n\n"
+
+        # Section 2: Character Info (if exists)
+        character_file = self.rp_dir / "entities" / "user.md"
+        if not character_file.exists():
+            character_file = self.rp_dir / "characters" / "user.md"
+
+        if character_file.exists():
+            char_content = read_file(character_file)
+            content += "---\n\n## 👤 Character Info\n\n" + char_content + "\n\n"
+
+        # Section 3: Relationship Summary (if relationship system enabled)
+        relationship_tracker = self.rp_dir / "state" / "relationship_tracker.json"
+        if relationship_tracker.exists():
+            relationships = read_json(relationship_tracker)
+            if relationships.get("relationships"):
+                content += "---\n\n## 💕 Relationships\n\n"
+                for char_name, rel_data in relationships["relationships"].items():
+                    score = rel_data.get("score", 0)
+                    tier = rel_data.get("tier", "Stranger")
+                    content += f"- **{char_name}**: {tier} ({score}/100)\n"
 
         with Container(id="overlay-container"):
-            yield Static("📖 User Memory", id="overlay-title")
+            yield Static("👤 Character Sheet", id="overlay-title")
             yield ScrollableContainer(
                 Static(Markdown(content)),
                 id="overlay-content"
@@ -152,29 +182,73 @@ class MemoryOverlay(ModalScreen):
             yield Static("[ESC to close]", id="overlay-footer")
 
 
-class ArcOverlay(ModalScreen):
-    """Overlay for viewing story arc (Ctrl+A)"""
+class StoryOverviewOverlay(ModalScreen):
+    """Overlay for viewing story overview (F3) - combines Arc + Genome with tabs"""
 
-    BINDINGS = [("escape", "dismiss", "Close")]
+    BINDINGS = [
+        ("escape", "dismiss", "Close"),
+        ("1", "show_arc", "Arc"),
+        ("2", "show_genome", "Genome")
+    ]
 
     def __init__(self, rp_dir: Path):
         super().__init__()
         self.rp_dir = rp_dir
+        self.current_tab = "arc"  # Default to arc tab
 
     def compose(self) -> ComposeResult:
+        with Container(id="overlay-container"):
+            yield Static("📖 Story Overview", id="overlay-title")
+            yield Static("[1] Arc  [2] Genome", id="tab-selector")
+            yield ScrollableContainer(
+                Static("", id="story-content"),
+                id="overlay-content"
+            )
+            yield Static("[ESC to close | 1/2 to switch tabs]", id="overlay-footer")
+
+    def on_mount(self) -> None:
+        """Load initial content"""
+        self.show_arc_content()
+
+    def action_show_arc(self) -> None:
+        """Switch to Arc tab"""
+        self.current_tab = "arc"
+        self.show_arc_content()
+
+    def action_show_genome(self) -> None:
+        """Switch to Genome tab"""
+        self.current_tab = "genome"
+        self.show_genome_content()
+
+    def show_arc_content(self) -> None:
+        """Load and display story arc"""
         arc_file = self.rp_dir / "state" / "story_arc.md"
         content = read_file(arc_file)
 
         if not content:
             content = "# Story Arc\n\n*Story arc not generated yet. Use `/arc` command to create.*"
 
-        with Container(id="overlay-container"):
-            yield Static("📊 Story Arc", id="overlay-title")
-            yield ScrollableContainer(
-                Static(Markdown(content)),
-                id="overlay-content"
-            )
-            yield Static("[ESC to close]", id="overlay-footer")
+        story_widget = self.query_one("#story-content", Static)
+        story_widget.update(Markdown(content))
+
+        # Update tab selector to show active tab
+        tab_selector = self.query_one("#tab-selector", Static)
+        tab_selector.update("[bold cyan][1] Arc[/]  [dim][2] Genome[/]")
+
+    def show_genome_content(self) -> None:
+        """Load and display story genome"""
+        genome_file = self.rp_dir / "STORY_GENOME.md"
+        content = read_file(genome_file)
+
+        if not content:
+            content = "# Story Genome\n\n*Story genome not found.*"
+
+        story_widget = self.query_one("#story-content", Static)
+        story_widget.update(Markdown(content))
+
+        # Update tab selector to show active tab
+        tab_selector = self.query_one("#tab-selector", Static)
+        tab_selector.update("[dim][1] Arc[/]  [bold cyan][2] Genome[/]")
 
 
 class CharactersOverlay(ModalScreen):
@@ -296,31 +370,6 @@ class EntitiesOverlay(ModalScreen):
             yield Static("[ESC to close]", id="overlay-footer")
 
 
-class GenomeOverlay(ModalScreen):
-    """Overlay for viewing story genome (Ctrl+G)"""
-
-    BINDINGS = [("escape", "dismiss", "Close")]
-
-    def __init__(self, rp_dir: Path):
-        super().__init__()
-        self.rp_dir = rp_dir
-
-    def compose(self) -> ComposeResult:
-        genome_file = self.rp_dir / "STORY_GENOME.md"
-        content = read_file(genome_file)
-
-        if not content:
-            content = "# Story Genome\n\n*Story genome not found.*"
-
-        with Container(id="overlay-container"):
-            yield Static("📖 Story Genome", id="overlay-title")
-            yield ScrollableContainer(
-                Static(Markdown(content)),
-                id="overlay-content"
-            )
-            yield Static("[ESC to close]", id="overlay-footer")
-
-
 class StatusOverlay(ModalScreen):
     """Overlay for system status (Ctrl+T)"""
 
@@ -372,6 +421,238 @@ class StatusOverlay(ModalScreen):
                 id="overlay-content"
             )
             yield Static("[ESC to close]", id="overlay-footer")
+
+
+class ModuleTogglesOverlay(ModalScreen):
+    """Overlay for toggling optional modules (F6)"""
+
+    BINDINGS = [("escape", "dismiss", "Close")]
+
+    def __init__(self, rp_dir: Path):
+        super().__init__()
+        self.rp_dir = rp_dir
+        self.config_file = rp_dir / "state" / "automation_config.json"
+
+    def compose(self) -> ComposeResult:
+        # Load current config
+        config = read_json(self.config_file)
+
+        # Get current values
+        rel_config = config.get("relationship_system", {})
+        mem_config = config.get("memory_system", {})
+        plot_config = config.get("plot_tracking", {})
+        kb_config = config.get("knowledge_base", {})
+        char_config = config.get("character_consistency", {})
+
+        with Container(id="settings-container"):
+            yield Static("🔧 Module Toggles", id="settings-title")
+
+            with ScrollableContainer(id="settings-content"):
+                yield Static("## 💕 Relationship Tracking System", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Enable relationship tracking:", classes="settings-label")
+                yield Switch(value=rel_config.get("enabled", True), id="rel-enabled-switch")
+                yield Static("")
+
+                yield Static("Auto-create preference files for new characters:", classes="settings-label")
+                yield Switch(value=rel_config.get("auto_create_preferences", False), id="rel-auto-create-switch")
+                yield Static("")
+
+                # Show current status
+                if rel_config.get("enabled", True):
+                    tracker_file = self.rp_dir / "state" / "relationship_tracker.json"
+                    if tracker_file.exists():
+                        tracker = read_json(tracker_file)
+                        rel_count = len(tracker.get("relationships", {}))
+                        yield Static(f"ℹ️  Currently tracking: {rel_count} relationship(s)", classes="settings-info")
+                    yield Static(f"ℹ️  Tier threshold: {rel_config.get('tier_threshold', 15)} points", classes="settings-info")
+                    yield Static("")
+
+                yield Static("## 💭 Memory System", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Enable memory extraction:", classes="settings-label")
+                yield Switch(value=mem_config.get("enabled", True), id="mem-enabled-switch")
+                yield Static("")
+
+                yield Static("Auto-extract memories from responses:", classes="settings-label")
+                yield Switch(value=mem_config.get("auto_extract", True), id="mem-auto-extract-switch")
+                yield Static("")
+
+                # Show current status
+                if mem_config.get("enabled", True):
+                    yield Static(f"ℹ️  Max memories per character: {mem_config.get('max_memories_per_character', 500)}", classes="settings-info")
+                    mem_dir = self.rp_dir / "memories"
+                    if mem_dir.exists():
+                        mem_files = list(mem_dir.glob("*.md"))
+                        yield Static(f"ℹ️  Memory files: {len(mem_files)}", classes="settings-info")
+                    yield Static("")
+
+                yield Static("## 📊 Plot Thread Tracking", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Enable plot thread tracking:", classes="settings-label")
+                yield Switch(value=plot_config.get("enabled", True), id="plot-enabled-switch")
+                yield Static("")
+
+                yield Static("Auto-extract plot threads:", classes="settings-label")
+                yield Switch(value=plot_config.get("auto_extract_threads", True), id="plot-auto-extract-switch")
+                yield Static("")
+
+                yield Static("Enable consequence countdowns:", classes="settings-label")
+                yield Switch(value=plot_config.get("enable_consequences", True), id="plot-consequences-switch")
+                yield Static("")
+
+                # Show current status
+                if plot_config.get("enabled", True):
+                    plot_file = self.rp_dir / "state" / "plot_threads.json"
+                    if plot_file.exists():
+                        plot_data = read_json(plot_file)
+                        thread_count = len(plot_data.get("threads", []))
+                        yield Static(f"ℹ️  Active plot threads: {thread_count}", classes="settings-info")
+                    yield Static("")
+
+                yield Static("## 🔍 Knowledge Base & Contradiction Detection", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Enable knowledge base extraction:", classes="settings-label")
+                yield Switch(value=kb_config.get("enabled", True), id="kb-enabled-switch")
+                yield Static("")
+
+                yield Static("Auto-extract world-building facts:", classes="settings-label")
+                yield Switch(value=kb_config.get("auto_extract", True), id="kb-auto-extract-switch")
+                yield Static("")
+
+                # Show current status
+                if kb_config.get("enabled", True):
+                    kb_file = self.rp_dir / "state" / "knowledge_base.json"
+                    if kb_file.exists():
+                        kb_data = read_json(kb_file)
+                        fact_count = len(kb_data.get("facts", []))
+                        yield Static(f"ℹ️  Knowledge base facts: {fact_count}", classes="settings-info")
+                    yield Static("")
+
+                yield Static("## 🎭 Character Consistency", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Enable character consistency checks:", classes="settings-label")
+                yield Switch(value=char_config.get("enabled", True), id="char-enabled-switch")
+                yield Static("")
+
+                yield Static("Always load Personality Cores:", classes="settings-label")
+                yield Switch(value=char_config.get("always_load_cores", True), id="char-load-cores-switch")
+                yield Static("")
+
+                yield Static("Include consistency checklist:", classes="settings-label")
+                yield Switch(value=char_config.get("include_checklist", True), id="char-checklist-switch")
+                yield Static("")
+
+                # Show current status
+                if char_config.get("enabled", True):
+                    # Count personality cores
+                    try:
+                        from src.entity_manager import EntityManager
+                        entity_mgr = EntityManager(self.rp_dir)
+                        entity_mgr.scan_and_index()
+                        core_count = sum(1 for e in entity_mgr.entities.values() if e.personality_core)
+                        yield Static(f"ℹ️  Characters with Personality Cores: {core_count}", classes="settings-info")
+                    except:
+                        pass
+                    yield Static("")
+
+                with Horizontal(classes="button-row"):
+                    yield Button("Save", variant="primary", id="save-modules-button")
+                    yield Button("Cancel", variant="default", id="cancel-modules-button")
+
+            yield Static("[ESC to close]", id="settings-footer")
+
+    def load_config(self) -> dict:
+        """Load configuration from file"""
+        if self.config_file.exists():
+            try:
+                return json.loads(self.config_file.read_text(encoding='utf-8'))
+            except Exception:
+                return {}
+        return {}
+
+    def save_config(self, config: dict) -> bool:
+        """Save configuration to file"""
+        try:
+            # Use write queue for efficient config saves
+            write_queue = get_write_queue()
+            write_queue.write_json(self.config_file, config, indent=2)
+            # Flush immediately for settings to ensure they're saved
+            write_queue.flush()
+            return True
+        except Exception as e:
+            self.app.notify(f"Error saving config: {e}", severity="error")
+            return False
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses"""
+        if event.button.id == "cancel-modules-button":
+            self.dismiss()
+        elif event.button.id == "save-modules-button":
+            self.save_module_settings()
+
+    def save_module_settings(self) -> None:
+        """Save module settings and close"""
+        # Get all switches
+        rel_enabled = self.query_one("#rel-enabled-switch", Switch).value
+        rel_auto_create = self.query_one("#rel-auto-create-switch", Switch).value
+        mem_enabled = self.query_one("#mem-enabled-switch", Switch).value
+        mem_auto_extract = self.query_one("#mem-auto-extract-switch", Switch).value
+        plot_enabled = self.query_one("#plot-enabled-switch", Switch).value
+        plot_auto_extract = self.query_one("#plot-auto-extract-switch", Switch).value
+        plot_consequences = self.query_one("#plot-consequences-switch", Switch).value
+        kb_enabled = self.query_one("#kb-enabled-switch", Switch).value
+        kb_auto_extract = self.query_one("#kb-auto-extract-switch", Switch).value
+        char_enabled = self.query_one("#char-enabled-switch", Switch).value
+        char_load_cores = self.query_one("#char-load-cores-switch", Switch).value
+        char_checklist = self.query_one("#char-checklist-switch", Switch).value
+
+        # Load existing config
+        config = self.load_config()
+
+        # Update relationship system
+        if "relationship_system" not in config:
+            config["relationship_system"] = {}
+        config["relationship_system"]["enabled"] = rel_enabled
+        config["relationship_system"]["auto_create_preferences"] = rel_auto_create
+
+        # Update memory system
+        if "memory_system" not in config:
+            config["memory_system"] = {}
+        config["memory_system"]["enabled"] = mem_enabled
+        config["memory_system"]["auto_extract"] = mem_auto_extract
+
+        # Update plot tracking
+        if "plot_tracking" not in config:
+            config["plot_tracking"] = {}
+        config["plot_tracking"]["enabled"] = plot_enabled
+        config["plot_tracking"]["auto_extract_threads"] = plot_auto_extract
+        config["plot_tracking"]["enable_consequences"] = plot_consequences
+
+        # Update knowledge base
+        if "knowledge_base" not in config:
+            config["knowledge_base"] = {}
+        config["knowledge_base"]["enabled"] = kb_enabled
+        config["knowledge_base"]["auto_extract"] = kb_auto_extract
+
+        # Update character consistency
+        if "character_consistency" not in config:
+            config["character_consistency"] = {}
+        config["character_consistency"]["enabled"] = char_enabled
+        config["character_consistency"]["always_load_cores"] = char_load_cores
+        config["character_consistency"]["include_checklist"] = char_checklist
+
+        # Save config
+        if self.save_config(config):
+            self.app.notify("✅ Module settings saved!", severity="information", timeout=3)
+            self.dismiss()
+        else:
+            self.app.notify("❌ Failed to save settings", severity="error", timeout=5)
 
 
 class SettingsScreen(ModalScreen):
@@ -902,6 +1183,16 @@ class RPClientApp(App):
         padding-top: 1;
     }
 
+    #tab-selector {
+        text-align: center;
+        padding: 1 0;
+        text-style: bold;
+    }
+
+    #story-content {
+        height: 1fr;
+    }
+
     #status-message {
         text-align: center;
         color: $warning;
@@ -971,16 +1262,15 @@ class RPClientApp(App):
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("ctrl+j", "submit_message", "Send"),  # Ctrl+Enter sends as Ctrl+J
-        # Overlay actions - F-keys for overlays
+        # Overlay actions - F-keys for overlays (reorganized)
         Binding("f1", "show_help", "Help"),
-        Binding("f2", "show_memory", "Memory"),
-        Binding("f3", "show_arc", "Arc"),
-        Binding("f4", "show_characters", "Characters"),
+        Binding("f2", "show_character_sheet", "Character"),  # CHANGED: Was Memory, now combined Character Sheet
+        Binding("f3", "show_story_overview", "Story"),  # CHANGED: Was Arc, now combined Story Overview (Arc+Genome)
+        Binding("f4", "show_entities", "Entities"),  # CHANGED: Moved from F6, groups by type
         Binding("f5", "show_notes", "Notes"),
-        Binding("f6", "show_entities", "Entities"),
-        Binding("f7", "show_genome", "Genome"),
-        Binding("f8", "show_status", "Status"),
-        Binding("f9", "show_settings", "Settings"),
+        Binding("f6", "show_modules", "Modules"),  # NEW: Module toggles
+        Binding("f7", "show_status", "Status"),  # MOVED: Was F8
+        Binding("f8", "show_settings", "Settings"),  # MOVED: Was F9
         Binding("f10", "restart_bridge", "Restart Bridge"),
     ]
 
@@ -1126,36 +1416,38 @@ class RPClientApp(App):
             self.pop_screen()
 
     # Overlay actions
-    def action_show_memory(self) -> None:
+    def action_show_character_sheet(self) -> None:
+        """Show character sheet overlay (F2) - combines Memory + character info"""
         self._dismiss_current_overlay()
-        self.push_screen(MemoryOverlay(self.rp_dir))
+        self.push_screen(CharacterSheetOverlay(self.rp_dir))
 
-    def action_show_arc(self) -> None:
+    def action_show_story_overview(self) -> None:
+        """Show story overview overlay (F3) - combines Arc + Genome with tabs"""
         self._dismiss_current_overlay()
-        self.push_screen(ArcOverlay(self.rp_dir))
-
-    def action_show_characters(self) -> None:
-        self._dismiss_current_overlay()
-        self.push_screen(CharactersOverlay(self.rp_dir))
-
-    def action_show_notes(self) -> None:
-        self._dismiss_current_overlay()
-        self.push_screen(SceneNotesOverlay(self.rp_dir))
+        self.push_screen(StoryOverviewOverlay(self.rp_dir))
 
     def action_show_entities(self) -> None:
+        """Show entities overlay (F4) - grouped by type"""
         self._dismiss_current_overlay()
         self.push_screen(EntitiesOverlay(self.rp_dir))
 
-    def action_show_genome(self) -> None:
+    def action_show_notes(self) -> None:
+        """Show scene notes overlay (F5)"""
         self._dismiss_current_overlay()
-        self.push_screen(GenomeOverlay(self.rp_dir))
+        self.push_screen(SceneNotesOverlay(self.rp_dir))
+
+    def action_show_modules(self) -> None:
+        """Show module toggles overlay (F6)"""
+        self._dismiss_current_overlay()
+        self.push_screen(ModuleTogglesOverlay(self.rp_dir))
 
     def action_show_status(self) -> None:
+        """Show status overlay (F7)"""
         self._dismiss_current_overlay()
         self.push_screen(StatusOverlay(self.rp_dir))
 
     def action_show_settings(self) -> None:
-        """Show settings screen"""
+        """Show settings screen (F8)"""
         self._dismiss_current_overlay()
         self.push_screen(SettingsScreen(self.rp_dir))
 
@@ -1183,9 +1475,14 @@ class RPClientApp(App):
 
 ## Quick Access Overlays
 Use the **F-keys** to open overlays:
-- **F1** - Help, **F2** - Memory, **F3** - Arc, **F4** - Characters
-- **F5** - Notes, **F6** - Entities, **F7** - Genome, **F8** - Status
-- **F9** - Settings (API configuration)
+- **F1** - Help
+- **F2** - Character Sheet ({{user}} memory + character info)
+- **F3** - Story Overview (Arc + Genome with tabs)
+- **F4** - Entities (grouped by type)
+- **F5** - Scene Notes
+- **F6** - Module Toggles (optional features)
+- **F7** - System Status
+- **F8** - Settings (API configuration)
 - **F10** - Restart Bridge (use after changing settings)
 
 ## In Overlays

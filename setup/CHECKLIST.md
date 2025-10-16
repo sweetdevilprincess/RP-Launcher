@@ -49,24 +49,29 @@ Check off each item as you create/verify your RP folder.
 - [ ] **`entities/`** - For auto-generated entities
 - [ ] **`state/`** - For tracking/automation files
 
-#### Required State Files
-- [ ] **`state/plot_threads_master.md`** - Plot tracking
-- [ ] **`state/current_state.md`** - Current state
-- [ ] **`state/automation_config.json`** - Automation settings
-- [ ] **`state/entity_tracker.json`** - Entity mentions
-- [ ] **`state/file_tracking.json`** - File tracking
+#### Auto-Generated State Files
 
-### Optional But Recommended
+⚠️ **These are created automatically by `initialize_rp.py`** - You don't need to create them manually. They will be generated when you set up your RP.
 
-#### Root Files
+For reference, see **[RP_DIRECTORY_MAP.md](../Working\ Guides/RP_DIRECTORY_MAP.md#state-directory-files)** for complete details on what each file does.
+
+### Core Story Files (Required for automation)
+
+These files are loaded by automation on every response (TIER_1). They must exist:
+
 - [ ] **`AUTHOR'S_NOTES.md`** - Story rules (what must/must not happen)
 - [ ] **`STORY_GENOME.md`** - Story direction & themes
+- [ ] **`NAMING_CONVENTIONS.md`** - World naming patterns
 - [ ] **`SCENE_NOTES.md`** - Current session guidance
-- [ ] **`CURRENT_STATUS.md`** - Auto-updated status
+
+### Truly Optional
+
+#### Root Files
+- [ ] **`CURRENT_STATUS.md`** - Manual status tracking (optional)
 
 #### Optional Directories
-- [ ] **`memories/`** - Character-specific memories
-- [ ] **`relationships/`** - Relationship tracking
+- [ ] **`memories/`** - Character-specific memories (auto-created)
+- [ ] **`relationships/`** - Character preference files for relationship tracking (manual, optional)
 - [ ] **`locations/`** - Location details
 - [ ] **`sessions/`** - Session logs
 - [ ] **`exports/`** - Exported content

@@ -60,17 +60,20 @@ def print_success(rp_dir: Path, rp_name: str):
     print()
 
 
-def copy_template(template_name: str, dest_dir: Path) -> bool:
+def copy_template(template_name: str, dest_dir: Path, rp_name: str) -> bool:
     """
     Copy template files from starter pack to destination.
 
     Args:
         template_name: Name of template (e.g., 'minimal')
         dest_dir: Destination RP directory
+        rp_name: Name of the RP (for renaming RP_NAME.md)
 
     Returns:
         True if template was copied, False if not found
     """
+    import shutil
+
     base_dir = Path(__file__).parent
     template_dir = base_dir / "templates" / "starter_packs" / template_name
 
@@ -81,9 +84,36 @@ def copy_template(template_name: str, dest_dir: Path) -> bool:
     print(f"   Copying from: {template_dir}")
     print()
 
-    # Copy template files (would implement actual copying here)
-    # For now, we'll use the RPInitializer to create structure
+    # Create destination if it doesn't exist
+    dest_dir.mkdir(parents=True, exist_ok=True)
 
+    # Copy all template files and directories
+    copied_count = 0
+    for item in template_dir.iterdir():
+        # Skip README.md from template (it's template documentation)
+        if item.name == "README.md":
+            continue
+
+        dest_item = dest_dir / item.name
+
+        # Handle RP_NAME.md renaming
+        if item.name == "RP_NAME.md":
+            dest_item = dest_dir / f"{rp_name}.md"
+
+        try:
+            if item.is_file():
+                shutil.copy2(item, dest_item)
+                print(f"  ✓ Copied: {item.name}")
+                copied_count += 1
+            elif item.is_dir():
+                shutil.copytree(item, dest_item, dirs_exist_ok=True)
+                print(f"  ✓ Copied directory: {item.name}/")
+                copied_count += 1
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not copy {item.name}: {e}")
+
+    print(f"\n  📄 Copied {copied_count} items from template")
+    print()
     return True
 
 
@@ -104,7 +134,7 @@ def main():
         "--template",
         type=str,
         default="minimal",
-        choices=["minimal"],  # Add more as they become available
+        choices=["minimal", "fantasy_adventure"],  # Add more as they become available
         help="Template to use (default: minimal)"
     )
 
@@ -148,15 +178,7 @@ def main():
         print()
         sys.exit(1)
 
-    # Copy template if specified
-    if args.template:
-        template_found = copy_template(args.template, rp_dir)
-        if not template_found:
-            print(f"⚠️  Template not found: {args.template}")
-            print(f"   Using default structure instead.")
-            print()
-
-    # Initialize RP structure
+    # Step 1: Initialize directory structure first
     print(f"Creating RP: {args.rp_name}")
     print(f"Location: {rp_dir}")
     print()
@@ -164,8 +186,16 @@ def main():
     initializer = RPInitializer(rp_dir)
     initializer.initialize(
         rp_name=args.rp_name,
-        skip_existing=not args.overwrite
+        skip_existing=True  # Always skip when using template
     )
+
+    # Step 2: Copy template files (will add to or override structure)
+    if args.template:
+        template_found = copy_template(args.template, rp_dir, args.rp_name)
+        if not template_found:
+            print(f"⚠️  Template not found: {args.template}")
+            print(f"   Using basic structure instead.")
+            print()
 
     # Print success message
     print_success(rp_dir, args.rp_name)

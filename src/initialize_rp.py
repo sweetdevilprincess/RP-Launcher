@@ -77,6 +77,7 @@ class RPInitializer:
 
         directories = [
             "chapters",           # Story chapters
+            "characters",         # Character sheets
             "entities",           # Character/location/organization cards
             "state",              # State management files
             "memories",           # Character-specific memory files

@@ -1,0 +1,63 @@
+{
+  "character_name": "Sarah Mitchell",
+  "preferences": {
+    "likes": [
+      {
+        "trait": "honesty_about_feelings",
+        "points": 18,
+        "reason": "As a nurse, she values when people are upfront about what's bothering them"
+      },
+      {
+        "trait": "accepting_help",
+        "points": 12,
+        "reason": "She's a caretaker - she appreciates when people let her help"
+      },
+      {
+        "trait": "taking_care_of_yourself",
+        "points": 10,
+        "reason": "She notices when people prioritize their health and wellbeing"
+      },
+      {
+        "trait": "emotional_vulnerability",
+        "points": 15,
+        "reason": "She values deep friendships and trusts people who open up"
+      }
+    ],
+    "dislikes": [
+      {
+        "trait": "deflecting_concern",
+        "points": -8,
+        "reason": "When she asks what's wrong and gets brushed off, it frustrates her"
+      },
+      {
+        "trait": "self_destructive_behavior",
+        "points": -12,
+        "reason": "As a medical professional, she's seen where this leads"
+      },
+      {
+        "trait": "dishonesty",
+        "points": -10,
+        "reason": "She can read people - lying to her doesn't work and hurts trust"
+      },
+      {
+        "trait": "pushing_her_away",
+        "points": -15,
+        "reason": "She's dedicated to her friendships and it hurts when people shut her out"
+      }
+    ],
+    "hates": [
+      {
+        "trait": "refusing_medical_help_when_needed",
+        "points": -25,
+        "reason": "This triggers her professional and personal instincts - it's a betrayal of her care"
+      },
+      {
+        "trait": "complete_emotional_shutdown",
+        "points": -20,
+        "reason": "If someone completely walls her off, she can't help and the friendship becomes one-sided"
+      }
+    ]
+  },
+  "baseline_disposition": 50,
+  "notes": "Sarah starts relationships warm (she's naturally caring) but needs reciprocation. She's protective and perceptive - she notices when people are struggling. Honesty and vulnerability strengthen her bonds quickly, but shutting her out or refusing help damages them. As an ER nurse, she has low tolerance for self-destructive behavior."
+}

@@ -277,6 +277,60 @@ Knowledge is automatically extracted by DeepSeek analysis.
         }
 
     @staticmethod
+    def character_preferences(character_name: str) -> Dict[str, Any]:
+        """
+        Generate template for character preference file.
+
+        These files define what a character likes/dislikes/hates based on their
+        personality. The RelationshipAnalysisAgent uses these to track relationship
+        changes.
+
+        Args:
+            character_name: Name of the character
+
+        Returns:
+            Dictionary template with personality-driven preferences
+        """
+        return {
+            "character_name": character_name,
+            "preferences": {
+                "likes": [
+                    {
+                        "trait": "honesty",
+                        "points": 10,
+                        "reason": "Example: Replace with what this character values"
+                    },
+                    {
+                        "trait": "loyalty",
+                        "points": 15,
+                        "reason": "Example: Higher points = more important to character"
+                    }
+                ],
+                "dislikes": [
+                    {
+                        "trait": "rudeness",
+                        "points": -5,
+                        "reason": "Example: Negative points reduce relationship score"
+                    },
+                    {
+                        "trait": "dishonesty",
+                        "points": -10,
+                        "reason": "Example: Stronger dislikes have more negative points"
+                    }
+                ],
+                "hates": [
+                    {
+                        "trait": "betrayal",
+                        "points": -30,
+                        "reason": "Example: Dealbreakers that severely damage relationships"
+                    }
+                ]
+            },
+            "baseline_disposition": 0,
+            "notes": f"Define what {character_name} values in relationships. Be specific to their personality, not generic traits."
+        }
+
+    @staticmethod
     def memory_index() -> Dict[str, Any]:
         """
         Generate template for memory_index.json
@@ -337,7 +391,8 @@ Knowledge is automatically extracted by DeepSeek analysis.
             "relationship_system": {
                 "enabled": True,
                 "auto_analyze": True,
-                "tier_threshold": 15
+                "tier_threshold": 15,
+                "auto_create_preferences": False
             },
             "character_consistency": {
                 "enabled": True,
@@ -556,6 +611,26 @@ These actions would be completely out of character:
 ### Character Growth Areas (CAN EVOLVE)
 These aspects can change through story events:
 - (To be established)
+
+---
+
+## RELATIONSHIP PREFERENCES (OPTIONAL)
+This character's personality-based preferences for relationships.
+**Preference file**: `relationships/{character_name}_preferences.json`
+
+### How Relationship Tiers Work
+Based on interactions, relationships evolve through tiers (-100 to +100):
+- **Enemy** (-100 to -30): Hostile, antagonistic, actively undermines
+- **Hostile** (-29 to -10): Cold, unfriendly, avoids interaction
+- **Stranger** (-9 to 10): Neutral, polite but distant
+- **Acquaintance** (11 to 30): Friendly but surface-level
+- **Friend** (31 to 60): Warm, supportive, shares personal info
+- **Close Friend** (61 to 80): Very comfortable, vulnerable, deep trust
+- **Best Friend** (81 to 100): Complete trust, emotional bond
+
+**Current Tier with {{{{user}}}}**: Stranger (0/100)
+
+*Note: This system is optional and controlled by automation settings. To enable, set `relationship_system.auto_create_preferences: true` in automation_config.json*
 
 ---
 

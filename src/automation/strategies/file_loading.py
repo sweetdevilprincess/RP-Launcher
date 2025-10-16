@@ -91,6 +91,7 @@ class Tier1Strategy(FileLoadingStrategy):
         files = [
             rp_dir / "AUTHOR'S_NOTES.md",
             rp_dir / "STORY_GENOME.md",
+            rp_dir / "NAMING_CONVENTIONS.md",
             rp_dir / "SCENE_NOTES.md",
             rp_dir / "state" / "current_state.md",
             rp_dir / "state" / "story_arc.md",

@@ -61,6 +61,7 @@ class FileLoader:
         files_to_load = [
             self.rp_dir / "AUTHOR'S_NOTES.md",
             self.rp_dir / "STORY_GENOME.md",
+            self.rp_dir / "NAMING_CONVENTIONS.md",
             self.rp_dir / "SCENE_NOTES.md",
             self.rp_dir / "state" / "current_state.md",
             self.rp_dir / "state" / "story_arc.md",

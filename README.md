@@ -129,6 +129,7 @@ python launch_rp_tui.py "My Campaign Name"
 
 ## 🎮 Usage
 
+<<<<<<< Updated upstream
 ### Keyboard Shortcuts
 
 | Key | Action |
@@ -155,6 +156,49 @@ Press any F-key to open an overlay with relevant information:
 - **Module toggles** (enable/disable automation)
 - **Status** (response count, arc progress, active characters)
 - **Settings** (API keys, models, thinking modes)
+=======
+### Start Here
+- **[CLAUDE.md](CLAUDE.md)** - Project instructions and guidelines (READ FIRST!)
+- **[Working Guides/DOCUMENTATION_INDEX.md](Working Guides/DOCUMENTATION_INDEX.md)** - Master navigation hub
+
+### Getting Started
+- **[Setup Guide](setup/README.md)** - Comprehensive setup instructions
+- **[Setup Checklist](setup/CHECKLIST.md)** - Verify your installation
+- **[Creating Your First RP](setup/guides/02_CREATING_YOUR_FIRST_RP.md)** - Complete walkthrough
+- **[Quick Start Guide](docs/guides/QUICK_START.md)** - 5-minute setup
+
+### User Guides
+- **[Launcher Documentation](Working Guides/LAUNCHER_DOCUMENTATION.md)** - Complete launcher system reference (NEW)
+- **[Automation Guide](docs/guides/AUTOMATION_GUIDE.md)** - Background agents and automation
+- **[System Overview](docs/guides/SYSTEM_OVERVIEW.md)** - How everything works together
+- **[Proxy Mode Guide](docs/guides/PROXY_MODE_GUIDE.md)** - Custom prompt injection
+
+### Technical Reference
+- **[RP Directory Map](Working Guides/RP_DIRECTORY_MAP.md)** - Complete RP file structure and interactions
+- **[System Architecture](Working Guides/SYSTEM_ARCHITECTURE.md)** - Overall system design
+- **[Agent Documentation](Working Guides/AGENT_DOCUMENTATION.md)** - Background automation agents
+- **[Prompt Caching Guide](docs/guides/PROMPT_CACHING_GUIDE.md)** - Token reduction strategies
+- **[Planned Features](docs/planned_features/)** - Upcoming features and roadmap
+
+---
+
+## 🎯 Key Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| **Ctrl+Enter** | Send message to Claude |
+| **Enter** | New line in input (not send) |
+| **Ctrl+Q** | Quit launcher |
+| **F1** | Help - Display keyboard shortcuts |
+| **F2** | Character Sheet - View {{user}} character + memory |
+| **F3** | Story Overview - View story arc + STORY_GENOME |
+| **F4** | Entities - View entity cards (by type) |
+| **F5** | Scene Notes - View session guidance |
+| **F6** | Modules - Toggle automation features |
+| **F7** | Status - View RP progress and state |
+| **F8** | Settings - Configure API keys and modes |
+| **F10** | Restart Bridge - Restart backend process |
+>>>>>>> Stashed changes
 
 ---
 
@@ -207,6 +251,7 @@ Background Agents (after response):
     └─ Plot Thread: "Visit to Rose bar" added (low priority)
 ```
 
+<<<<<<< Updated upstream
 **Next session (Response 65):**
 ```
 User: "We're at the Rose bar now"
@@ -223,3 +268,64 @@ Claude: "The dim lighting and soft jazz create exactly
 ```
 
 **Perfect continuity without manual tracking.**
+=======
+1. **Launcher** (`launch_rp_tui.py`) - Entry point and process manager
+2. **TUI** (`rp_client_tui.py`) - User interface (Textual)
+3. **Bridge** (`tui_bridge.py`) - Backend connecting TUI to Claude
+
+### Two Operating Modes
+
+**SDK Mode (Default)** - No API Key Required:
+- Uses Claude Code SDK bridge (Node.js wrapper)
+- High-performance streaming responses
+- Perfect for local development
+- No API key setup needed
+
+**API Mode** - Direct Claude API:
+- Direct Anthropic Claude API access
+- Requires API key (set in F8 Settings)
+- Full token visibility and control
+- Automatic fallback to SDK if key unavailable
+
+See [TUI Bridge Documentation](Working Guides/TUI_BRIDGE_DOCUMENTATION.md) for complete details on both modes.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+See [planned features](docs/planned_features/) for areas that need work.
+
+---
+
+## 📜 License
+
+[Add your license here - MIT, Apache 2.0, etc.]
+
+---
+
+## 🌟 Community
+
+- **[GitHub Issues](https://github.com/[USERNAME]/[REPO]/issues)** - Bug reports and feature requests
+- **[GitHub Discussions](https://github.com/[USERNAME]/[REPO]/discussions)** - Questions and community support
+
+---
+
+## 🎯 Credits
+
+Created by [Your Name/Username]
+
+Powered by Claude (Anthropic) and DeepSeek
+
+---
+
+**Version**: 1.0.0 | **Last Updated**: October 2025
+
+Ready to create immersive roleplays? Run `python setup/quick_setup.py "My RP Name"` to get started!
+>>>>>>> Stashed changes
