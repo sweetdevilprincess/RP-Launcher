@@ -186,3 +186,10 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+
+# ==============================================================================
+# DEVELOPMENT TOOLS
+# ==============================================================================
+
+# Git worktrees (isolated workspaces)
+.worktrees/
