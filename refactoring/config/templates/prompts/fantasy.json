@@ -1,0 +1,78 @@
+{
+  "genre": "fantasy",
+  "display_name": "Fantasy",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Epic and heroic storytelling with wonder",
+        "Balance dark challenges with hope",
+        "Magic feels natural to the world",
+        "Good vs evil with moral complexity",
+        "Sense of adventure and discovery",
+        "Ancient mysteries and prophecies"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Build toward epic confrontations",
+        "Allow quiet moments for character development",
+        "Reveal magic and lore gradually",
+        "Mix action, dialogue, and worldbuilding",
+        "Escalate stakes toward climactic moments",
+        "Balance exploration with plot progression"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Speech patterns reflect culture and era",
+        "Avoid overly modern slang in traditional fantasy",
+        "Let magic users speak with authority",
+        "Characters debate morality and duty",
+        "Prophecies and riddles add mystery",
+        "Formal address shows hierarchy and respect"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Establish the magical rules early",
+        "Show wonder through sensory details",
+        "Use setting to enhance mood and stakes",
+        "Integrate magic organically into conflicts",
+        "Build tension through both physical and magical threats",
+        "Show consequences of magic use"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Vivid descriptions of magical phenomena",
+        "Rich worldbuilding through environmental details",
+        "Fantastical creatures feel alive and unique",
+        "Ancient ruins and artifacts tell history",
+        "Magic has visual, auditory, and tactile presence",
+        "Contrast mundane and magical elements"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't let magic solve every problem easily",
+        "Avoid info-dumping lore and history",
+        "Don't make the world feel like a video game",
+        "Resist using cliché chosen one tropes without subversion",
+        "Don't ignore the logical implications of magic",
+        "Avoid making every character a noble hero or pure villain"
+      ]
+    }
+  },
+  "highlights": [
+    "Epic quests and world-changing stakes",
+    "Magic with clear rules and consequences",
+    "Rich worldbuilding and ancient lore",
+    "Moral complexity in a world of wonder"
+  ]
+}

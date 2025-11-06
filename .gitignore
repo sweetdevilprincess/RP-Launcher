@@ -58,6 +58,9 @@ __pycache__/
 *$py.class
 *.so
 
+# Pytest cache
+.pytest_cache/
+
 # Distribution / packaging
 .Python
 build/

@@ -1,0 +1,178 @@
+{
+  "template_name": "Minimal Character",
+  "description": "Basic character template with essential fields",
+  "extends": "base_character_schema.json",
+  "sections": [
+    {
+      "id": "basic_info",
+      "title": "Basic Info",
+      "fields": [
+        {
+          "id": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "help_text": "Character's name",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "age",
+          "label": "Age",
+          "type": "text",
+          "required": false,
+          "help_text": "Character's age",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "gender",
+          "label": "Gender",
+          "type": "text",
+          "required": false,
+          "help_text": "Gender/pronouns",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "species",
+          "label": "Species/Race",
+          "type": "text",
+          "required": false,
+          "help_text": "Human, etc.",
+          "wizard_field": false,
+          "default": "Human",
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "occupation",
+          "label": "Occupation",
+          "type": "text",
+          "required": false,
+          "help_text": "Character's job or role",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "appearance",
+      "title": "Appearance",
+      "fields": [
+        {
+          "id": "physical_description",
+          "label": "Physical Description",
+          "type": "textarea",
+          "required": false,
+          "help_text": "What does the character look like?",
+          "wizard_field": true,
+          "markdown_format": "**{label}:**\n{value}"
+        }
+      ]
+    },
+    {
+      "id": "personality",
+      "title": "Personality",
+      "fields": [
+        {
+          "id": "core_traits",
+          "label": "Core Traits",
+          "type": "textarea",
+          "required": false,
+          "help_text": "Key personality characteristics",
+          "wizard_field": true,
+          "markdown_format": "**{label}:**\n{value}"
+        },
+        {
+          "id": "behavior",
+          "label": "Behavior",
+          "type": "list",
+          "required": false,
+          "help_text": "How does the character act?",
+          "wizard_field": false,
+          "subitems": [
+            "Under Pressure: To be determined",
+            "In Social Situations: To be determined"
+          ],
+          "markdown_format": "**{label}:**\n{list_items}"
+        }
+      ]
+    },
+    {
+      "id": "background",
+      "title": "Background",
+      "fields": [
+        {
+          "id": "history",
+          "label": "History",
+          "type": "textarea",
+          "required": false,
+          "help_text": "Character's background and past",
+          "wizard_field": false,
+          "markdown_format": "{value}"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "title": "Skills & Abilities",
+      "fields": [
+        {
+          "id": "abilities",
+          "label": "Abilities",
+          "type": "textarea",
+          "required": false,
+          "help_text": "What can the character do?",
+          "wizard_field": false,
+          "markdown_format": "{value}"
+        }
+      ]
+    },
+    {
+      "id": "goals",
+      "title": "Goals & Motivations",
+      "fields": [
+        {
+          "id": "motivations",
+          "label": "Motivations",
+          "type": "textarea",
+          "required": false,
+          "help_text": "What drives the character?",
+          "wizard_field": false,
+          "markdown_format": "{value}"
+        }
+      ]
+    },
+    {
+      "id": "relationships",
+      "title": "Relationships",
+      "fields": [
+        {
+          "id": "connections",
+          "label": "Connections",
+          "type": "textarea",
+          "required": false,
+          "help_text": "Important relationships",
+          "wizard_field": false,
+          "default": "To be developed during play",
+          "markdown_format": "{value}"
+        }
+      ]
+    },
+    {
+      "id": "notes",
+      "title": "Notes",
+      "fields": [
+        {
+          "id": "additional_notes",
+          "label": "Additional Notes",
+          "type": "textarea",
+          "required": false,
+          "help_text": "Any other important details",
+          "wizard_field": false,
+          "markdown_format": "{value}"
+        }
+      ]
+    }
+  ]
+}

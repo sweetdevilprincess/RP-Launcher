@@ -1,5 +1,8 @@
 # RP Claude Code - Component Data Flow Reference
 
+**Last Updated**: 2025-10-17  
+**Version**: 1.1.0
+
 Quick reference guide showing what each component reads and writes.
 
 **Note:** For detailed information about file operations within `/RPs/{RP Name}/` directories, see [RP_DIRECTORY_MAP.md](RP_DIRECTORY_MAP.md). That document provides comprehensive file interaction details, state file references, and debugging guidance specific to RP operations.
@@ -10,41 +13,40 @@ Quick reference guide showing what each component reads and writes.
 
 | Component | Location | Reads From | Writes To | Purpose |
 |-----------|----------|-----------|-----------|---------|
-| **File Manager** | `src/file_manager.py` | All files (JSON, MD) | All files via safe write | Centralized file operations |
-| **FSWriteQueue** | `src/fs_write_queue.py` | Files (to check state) | All files (debounced) | Debounced writes, reduce I/O |
-| **File Change Tracker** | `src/file_change_tracker.py` | `state/file_changes.json`, filesystem mtimes | `state/file_changes.json` | Detect file updates |
-| **Entity Manager** | `src/entity_manager.py` | `entities/*.md` | Internal index | Load & index entities |
-| **State Templates** | `src/state_templates.py` | None (generator) | Return template strings | Generate state file templates |
-| **Orchestrator V2** | `src/automation/orchestrator_v2.py` | Config, counter, state files | All state files, responses | Central automation hub |
-| **Pipeline System** | `src/automation/pipeline/` | Via context | Via context | Stage-based execution |
-| **Agent Coordinator** | `src/automation/agent_coordinator.py` | Agent results | Cache results | Orchestrate agent execution |
-| **Immediate Agents (4)** | `src/automation/agents/immediate/` | Entities, memories, plot threads | Agent analysis cache | Gather context before response |
-| **Background Agents (6)** | `src/automation/agents/background/` | Response + state files | State files, memories | Analyze response, update state |
-| **Claude API Client** | `src/clients/claude_api.py` | Anthropic API | Response | Call Claude API |
-| **DeepSeek Client** | `src/clients/deepseek.py` | OpenRouter API | Generated content | Call DeepSeek API |
-| **TUI Bridge** | `src/tui_bridge.py` | `state/rp_client_input.json` | `state/rp_client_response.json` | Connect TUI to Claude |
-| **TUI (Textual)** | `src/rp_client_tui.py` | `state/rp_client_response.json` | `state/rp_client_input.json` | User interface |
-| **Background Task Queue** | `src/automation/background_tasks.py` | Task queue | Results via callbacks | Execute long tasks |
-| **Story Generator** | `src/automation/story_generation.py` | Story context | DeepSeek API calls | Generate story content |
-
+| **Module Manager** | `src/core/module_manager.py` | Module registry, `state/automation_config.json` | Module lifecycle state (in-memory) | Registers modules, resolves dependencies, coordinates start/stop |
+| **Config Loader** | `src/core/config.py` | `state/automation_config.json`, defaults | `state/automation_config.json` (save/reset) | Merges default + per-RP config for modules |
+| **FileManagerModule** | `src/modules/files/file_manager_module.py` | All RP files (JSON, Markdown, directories) | All RP files via `FileManager` | Centralized read/write helper for modules |
+| **FSWriteQueueModule** | `src/modules/files/fs_write_queue_module.py` | Pending write registry | Deferred writes to disk (debounced) | Buffers and flushes filesystem writes |
+| **SessionManagerModule** | `src/modules/session/session_manager_module.py` | `sessions/**/*.json` | `sessions/**/*.json` | Retry, branching, checkpoint lifecycle |
+| **EntityManagerModule** | `src/modules/entities/entity_manager_module.py` | `entities/*.md`, `memories/`, `relationships/` | In-memory indices, generated cards via FileManager | Entity lookup, mention detection, preference helpers |
+| **BackgroundTaskQueueModule** | `src/modules/tasks/background_task_queue_module.py` | Task queue persistence (`state/background_tasks.json`) | Same (plus logs) | Runs long tasks without blocking automation loop |
+| **AgentCoordinatorModule** | `src/modules/agents/agent_coordinator_module.py` | DeepSeek agent definitions, cached results | `state/agent_analysis.json` | Executes DeepSeek agents concurrently + caches output |
+| **OrchestratorModule** | `src/modules/automation/orchestrator_module.py` + `src/automation/orchestrator_v2_simplified.py` | Tiered state files, agent cache, triggers, counters | `CURRENT_STATUS.md`, `hook.log`, `state/agent_analysis.json` (when saving) | Builds Claude prompt, coordinates automation pass |
+| **File Change Tracker** | `src/file_change_tracker.py` | Filesystem mtimes, `state/file_tracking.json` | `state/file_tracking.json` | Detects external edits and surfaces diffs |
+| **Immediate Agents (4)** | `src/automation/agents/immediate/` | Entity cards, memories, plot threads, user message | `state/agent_analysis.json` (`immediate` block) | Supplies quick context before Claude reply |
+| **Background Agents (6)** | `src/automation/agents/background/` | Claude response, state files | `state/agent_analysis.json` (`background` block), state files via FileManager | Post-response analysis; updates lore, memories, relationships |
+| **TUI Bridge** | `src/tui_bridge.py` | TUI flags, ModuleManager status, `state/*` | `state/rp_client_input.json`, `hook.log`, module commands | Loads ModuleManager, relays messages between TUI and Claude |
+| **TUI (Textual)** | `src/rp_client_tui.py` | `state/rp_client_response.json`, `CURRENT_STATUS.md` | `state/rp_client_input.json`, control flags | Operator-facing UI for sessions |
+| **Claude API Client** | `src/clients/claude_api.py` | Conversation history from SessionManager | Claude responses to `state/rp_client_response.json` | Anthropic API integration (API mode) |
+| **DeepSeek Client** | `src/clients/deepseek.py` | Agent prompts from automation | JSON/text analysis back to agents | DeepSeek analysis + generation support |
 ---
 
 ## STATE FILES - WHO READS AND WRITES
 
 ### response_counter.json
 - **Read By**:
-  - Orchestrator V2 (initialization)
+- OrchestratorModule / `AutomationOrchestratorV2` (initialization)
   - Core automation functions
   - All agents (when needed)
 - **Written By**:
-  - Orchestrator V2 (after each response)
-  - Via FSWriteQueue
+- `automation.core.increment_counter` (invoked by OrchestratorModule after each response)
+  - Via FSWriteQueueModule
 - **Used For**: Tracking current response number
 
 ### automation_config.json
 - **Read By**:
-  - Orchestrator V2 (initialization)
-  - ConfigContainer
+- OrchestratorModule / `AutomationOrchestratorV2` (initialization)
+- ConfigLoader / ModuleManager
   - Core automation
 - **Written By**:
   - Manual setup only
@@ -56,16 +58,16 @@ Quick reference guide showing what each component reads and writes.
   - Agents (context)
 - **Written By**:
   - Background agents (updates)
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: Current story state
 
 ### agent_analysis.json
 - **Read By**:
-  - Any agent needing previous results
-  - Orchestrator V2
+  - OrchestratorModule / `AutomationOrchestratorV2` (when assembling prompt context)
+  - AgentCoordinatorModule (reuse cached background runs)
 - **Written By**:
-  - Agent coordinator (after agents run)
-  - Via FSWriteQueue
+  - AgentCoordinatorModule (after agents run)
+  - Via FSWriteQueueModule
 - **Used For**: Cache agent results
 
 ### relationships.json
@@ -74,7 +76,7 @@ Quick reference guide showing what each component reads and writes.
   - Memory extraction (context)
 - **Written By**:
   - Relationship Analysis agent
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: Track character relationships
 
 ### plot_threads_master.md
@@ -84,7 +86,7 @@ Quick reference guide showing what each component reads and writes.
   - Orchestrator (initialization)
 - **Written By**:
   - Plot Thread Detection agent
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: Manage all plot threads
 
 ### knowledge_base.md
@@ -93,7 +95,7 @@ Quick reference guide showing what each component reads and writes.
   - Contradiction Detection agent
 - **Written By**:
   - Knowledge Extraction agent
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: World-building facts
 
 ### file_changes.json
@@ -101,7 +103,7 @@ Quick reference guide showing what each component reads and writes.
   - File Change Tracker
 - **Written By**:
   - File Change Tracker
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: Track file modifications
 
 ### hook.log
@@ -134,7 +136,7 @@ Quick reference guide showing what each component reads and writes.
   - Various agents needing context
 - **Written By**:
   - Memory Creation agent (background)
-  - Via FSWriteQueue
+  - Via FSWriteQueueModule
 - **Used For**: Character memory banks
 
 ### locations/*.md (Location Details)
@@ -240,25 +242,25 @@ Run in parallel, hidden, ~15-30 seconds total
 #### Memory Creation
 - **Reads**: Response, response counter
 - **Writes**: memories/{character}/*.md (new files)
-- **Updates**: Via FSWriteQueue
+- **Updates**: Via FSWriteQueueModule
 - **Purpose**: Extract and store memories
 
 #### Relationship Analysis
 - **Reads**: Response, state/relationships.json
 - **Writes**: Updated state/relationships.json
-- **Updates**: Via FSWriteQueue
+- **Updates**: Via FSWriteQueueModule
 - **Purpose**: Track relationship changes
 
 #### Plot Thread Detection
 - **Reads**: Response, state/plot_threads_master.md
 - **Writes**: Updated state/plot_threads_master.md
-- **Updates**: Via FSWriteQueue
+- **Updates**: Via FSWriteQueueModule
 - **Purpose**: Track new/resolved threads
 
 #### Knowledge Extraction
 - **Reads**: Response, state/knowledge_base.md
 - **Writes**: Updated state/knowledge_base.md
-- **Updates**: Via FSWriteQueue
+- **Updates**: Via FSWriteQueueModule
 - **Purpose**: Extract world facts
 
 #### Contradiction Detection (Optional)
@@ -271,38 +273,37 @@ Run in parallel, hidden, ~15-30 seconds total
 
 ## ORCHESTRATION FLOW
 
-### Pipeline Stages (in order)
+### Automation Pass (module-managed order)
 
-1. **Load Stage**
-   - Reads: entity cards, configuration
-   - Outputs: indexed entities in context
-   - Writes: None
+1. **Tiered Loader + Status Prep**
+   - Controlled by: OrchestratorModule (`AutomationOrchestratorV2`)
+   - Reads: tiered core files (`state/current_state.md`, entity index, templates, counters)
+   - Writes: `CURRENT_STATUS.md`, `hook.log` snapshots
 
-2. **Immediate Agents Stage**
-   - Reads: user message, entities, memories, plot threads
-   - Outputs: agent results in context
-   - Writes: state/agent_analysis.json (cache)
+2. **Immediate Agents**
+   - Runs via: AgentCoordinatorModule (immediate agent set)
+   - Reads: user message, entity cards, memories, plot threads
+   - Writes: `state/agent_analysis.json` (`immediate` block)
 
-3. **Response Stage**
-   - Reads: context with agent results
-   - Outputs: Claude response in context
-   - Writes: None to disk
+3. **Claude Response**
+   - Uses: Claude API client or SDK (configured in TUI Bridge)
+   - Reads: assembled prompt (base context + agent output)
+   - Writes: `state/rp_client_response.json`, active session log via SessionManagerModule
 
-4. **Background Agents Stage**
-   - Reads: response, state files
-   - Outputs: agent results
-   - Writes: state files (via queue)
+4. **Background Agents**
+   - Runs via: AgentCoordinatorModule (background agent set)
+   - Reads: Claude response, knowledge base, relationships, memories, plot threads
+   - Writes: `state/agent_analysis.json` (`background` block), state files through FileManagerModule + FSWriteQueueModule
 
-5. **File Update Stage**
-   - Reads: agent results
-   - Outputs: None
-   - Writes: all updated state files (via queue)
+5. **File Flush & Change Tracking**
+   - FSWriteQueueModule flushes pending writes
+   - FileChangeTracker updates `state/file_tracking.json` for external visibility
 
 ---
 
 ## WRITE QUEUE BEHAVIOR
 
-All writes go through FSWriteQueue for debouncing:
+All writes go through FSWriteQueueModule for debouncing:
 
 ```
 Multiple writes to same file within 500ms
@@ -339,7 +340,7 @@ Use this when modifying components:
 - [ ] Decide read/write permissions
 - [ ] Document in this file
 - [ ] Update initialization logic
-- [ ] Ensure FSWriteQueue compatible
+- [ ] Ensure FSWriteQueueModule compatible
 
 ### Modifying File Manager
 - [ ] Affects all file operations
@@ -347,18 +348,18 @@ Use this when modifying components:
 - [ ] Update error handling
 - [ ] Test IPC communication
 
-### Modifying FSWriteQueue
+### Modifying FSWriteQueueModule
 - [ ] Affects all writes system-wide
 - [ ] Test debounce behavior
 - [ ] Test concurrent writes
 - [ ] Test shutdown handling
 
-### Adding a New Pipeline Stage
-- [ ] Create stage class in `src/automation/pipeline/stages.py`
-- [ ] Implement required methods
-- [ ] Add to pipeline builder
-- [ ] Document in `SYSTEM_ARCHITECTURE.md`
-- [ ] Test context passing
+### Registering a New Module
+- [ ] Implement an `RPModule` subclass in `src/modules/<domain>/`
+- [ ] Declare `name`, `dependencies`, and lifecycle hooks (`initialize/start/stop/cleanup`)
+- [ ] Register it with `ModuleManager` (see `tui_bridge.py` bootstrap sequence)
+- [ ] Add defaults to `core/config.py` and update documentation (`SYSTEM_ARCHITECTURE.md`)
+- [ ] Verify it appears in `/modules status` and survives start/stop cycles
 
 ---
 
@@ -367,11 +368,11 @@ Use this when modifying components:
 ### Agent Results Not Updating
 - Check: `state/agent_analysis.json` for cache
 - Check: agent logs in `state/hook.log`
-- Check: FSWriteQueue debounce settings
+- Check: FSWriteQueueModule debounce settings
 - Solution: Clear cache, restart
 
 ### Files Not Changing
-- Check: FSWriteQueue debounce (may still be pending)
+- Check: FSWriteQueueModule debounce (may still be pending)
 - Check: File permissions
 - Check: State directory exists
 - Solution: Force flush or wait 500ms+
@@ -404,7 +405,7 @@ Use this when modifying components:
 ```
 1. Memory Creation agent runs after response
 2. Generates memories/{char}/mem_ID.md
-3. Queued via FSWriteQueue
+3. Queued via FSWriteQueueModule
 4. Flushed after 500ms
 5. Memory Extraction uses next cycle
 ```
@@ -413,7 +414,7 @@ Use this when modifying components:
 ```
 1. Relationship Analysis reads response
 2. Updates state/relationships.json
-3. Queued via FSWriteQueue
+3. Queued via FSWriteQueueModule
 4. Flushed after 500ms
 5. Next agent analysis uses updated values
 ```
@@ -423,7 +424,7 @@ Use this when modifying components:
 1. Plot Thread Detection reads response
 2. Identifies new thread
 3. Updates state/plot_threads_master.md
-4. Queued via FSWriteQueue
+4. Queued via FSWriteQueueModule
 5. Plot Thread Extraction uses next cycle
 ```
 
@@ -447,7 +448,7 @@ Use this when modifying components:
 - DeepSeek API calls (external dependency)
 - Markdown file parsing (for large entity cards)
 - Entity mention detection (word matching)
-- File I/O (mitigated by FSWriteQueue)
+- File I/O (mitigated by FSWriteQueueModule)
 
 ---
 
@@ -458,7 +459,7 @@ Use this when modifying components:
 | Understand overall flow | `SYSTEM_ARCHITECTURE.md` (this directory) |
 | Add/modify agent | `src/automation/agents/` and `AGENT_DOCUMENTATION.md` |
 | Handle files | `src/file_manager.py` |
-| Understand pipeline | `src/automation/pipeline/` |
+| Understand module system | `src/core/module_manager.py`, `src/modules/` |
 | Configure automation | `state/automation_config.json` |
 | Check state | `state/current_state.md` |
 | Debug issues | `state/hook.log` |
@@ -469,3 +470,4 @@ Use this when modifying components:
 ---
 
 This reference should help you quickly understand what changes what and prevent missed dependencies!
+

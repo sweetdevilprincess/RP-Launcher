@@ -1,0 +1,63 @@
+{
+  "contradictions": [
+    {
+      "id": "contr_4db4cec2",
+      "status": "resolved",
+      "detected_at": "2025-11-05T16:11:56.897592+00:00",
+      "chapter": 1,
+      "message_range": [
+        1,
+        39
+      ],
+      "type": "world_rule",
+      "description": "Test contradiction - magic used without incantation",
+      "established_rule": "All magic requires verbal incantations",
+      "contradicting_statement": "Alice cast spell silently",
+      "chapter_reference": "Message 25",
+      "explanations": [
+        {
+          "explanation": "Alice is exceptionally powerful and mastered silent casting",
+          "plausibility": "high",
+          "narrative_impact": "Establishes Alice as magical prodigy",
+          "supporting_evidence": "Alice has shown advanced abilities",
+          "chosen": true
+        },
+        {
+          "explanation": "Alice uses a magical artifact",
+          "plausibility": "medium",
+          "narrative_impact": "Introduces new plot device",
+          "supporting_evidence": "Alice acquired mysterious amulet",
+          "chosen": false
+        }
+      ],
+      "resolution_actions": [
+        {
+          "agent": "knowledge_extraction",
+          "action": "add_entry",
+          "target_file": "state/knowledge_{session_id}.json",
+          "data": {
+            "category": "world_rule",
+            "fact": "Silent casting is an extremely rare ability that only powerful mages can achieve.",
+            "details": "",
+            "confidence": 0.9,
+            "tags": [
+              "contradiction_resolution"
+            ],
+            "source": "contradiction_synthesis",
+            "contradiction_id": "contr_4db4cec2"
+          },
+          "completed": true,
+          "pending": true,
+          "completed_at": "2025-11-05T11:11:56.943592",
+          "completed_by_message": 40
+        }
+      ],
+      "resolved_at": "2025-11-05T11:11:56.967471",
+      "resolved_by": "response_analyzer",
+      "resolved_reason": "Addressed in Claude's response (message 41)"
+    }
+  ],
+  "session_id": "main",
+  "last_archived": "2025-11-05T16:11:56.986609+00:00",
+  "total_resolved": 1
+}

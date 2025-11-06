@@ -1,0 +1,15 @@
+{
+  "name": "bridge",
+  "version": "1.0.0",
+  "displayName": "Claude Code Bridge",
+  "description": "MCP server for coordinating between multiple Claude Code instances working on different workstreams",
+  "author": "green",
+  "mcp": {
+    "claude-code-bridge": {
+      "command": "python",
+      "args": [
+        "C:\\Users\\green\\Desktop\\RP_Claude_Code_Bridge\\server.py"
+      ]
+    }
+  }
+}

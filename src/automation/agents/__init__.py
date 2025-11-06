@@ -32,6 +32,9 @@ Usage:
 # Base class
 from src.automation.agents.base_agent import BaseAgent
 
+# Agent factory and orchestrator
+from src.automation.agents.agent_factory import AgentFactory, AgentOrchestrator
+
 # Background agents (run after Response N)
 from src.automation.agents.background.response_analyzer import ResponseAnalyzerAgent
 from src.automation.agents.background.memory_creation import MemoryCreationAgent
@@ -61,6 +64,10 @@ from src.automation.agents.immediate.plot_thread_extraction import extract_plot_
 __all__ = [
     # Base class
     "BaseAgent",
+
+    # Factory and orchestrator
+    "AgentFactory",
+    "AgentOrchestrator",
 
     # Background agents
     "ResponseAnalyzerAgent",

@@ -1,0 +1,35 @@
+{
+  "$schema": "wip_manifest_schema.json",
+  "version": "1.0",
+  "description": "Manifest file for WIP (Work In Progress) modules. This file is optional and provides metadata about WIP implementations.",
+
+  "prompt_builder": {
+    "description": "Testing new tiered template system",
+    "author": "Your Name",
+    "status": "in_progress",
+    "created": "2025-10-21",
+    "notes": "Refactoring to support dynamic template loading",
+    "changes": [
+      "Added lazy initialization for template manager",
+      "Fixed template path resolution bug",
+      "Improved caching strategy"
+    ],
+    "tests_passing": true,
+    "ready_for_production": false
+  },
+
+  "trigger_evaluator": {
+    "description": "Improved semantic matching algorithm",
+    "author": "Your Name",
+    "status": "testing",
+    "created": "2025-10-15",
+    "notes": "Using new embedding model for better accuracy",
+    "changes": [
+      "Switched to sentence transformers",
+      "Added confidence threshold tuning",
+      "Improved caching"
+    ],
+    "tests_passing": true,
+    "ready_for_production": true
+  }
+}

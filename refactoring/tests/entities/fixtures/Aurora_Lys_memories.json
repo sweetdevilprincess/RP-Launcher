@@ -1,0 +1,39 @@
+{
+  "character": "Aurora Lys",
+  "entries": [
+    {
+      "id": "aurora_mem_001",
+      "summary": "Aurora guided the Dawnrise through the Miridian Rift while singing to stabilize the crew.",
+      "details": "Aurora led the crew through the Miridian Rift, using harmonic resonance to keep the ship intact.",
+      "tags": ["Aurora_Lys", "Dawnrise", "Miridian_Rift", "crew", "leadership", "Ch_01"],
+      "quoted_dialogue": [
+        "\"Hold steady, Dawnrise—let the melody anchor you.\"",
+        "\"Pilot Lys, can you sing us steady again?\""
+      ],
+      "relationships": {
+        "Aurora Lys": "strengthened",
+        "Crew": "reassured"
+      },
+      "location": "Celestia Observatory",
+      "chapter": "Chapter 1",
+      "timestamp": "2199-05-12T18:42:00Z"
+    },
+    {
+      "id": "aurora_mem_002",
+      "summary": "Aurora shared a first kiss with Erik on the Ferris wheel at the orbital carnival.",
+      "details": "During the Celestia carnival, Aurora and Erik shared a quiet moment atop the ferris wheel, promising to face the storms together.",
+      "tags": ["Aurora_Lys", "Erik_Sol", "romantic", "positive_change", "date", "first_kiss", "carnival", "ferris_wheel", "Ch_02"],
+      "quoted_dialogue": [
+        "\"No matter the storm, I’ll sing us home.\"",
+        "\"Then I’ll chart the stars beside you.\""
+      ],
+      "relationships": {
+        "Aurora Lys": "romantic progression",
+        "Erik Sol": "romantic progression"
+      },
+      "location": "Celestia Observatory Carnival",
+      "chapter": "Chapter 2",
+      "timestamp": "2199-06-03T21:15:00Z"
+    }
+  ]
+}

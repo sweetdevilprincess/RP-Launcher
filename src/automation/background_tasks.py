@@ -309,8 +309,12 @@ class BackgroundTaskQueue:
         except Exception:
             return False
 
-    def shutdown(self) -> None:
-        """Shutdown the task queue gracefully"""
+    def shutdown(self, timeout: float = 60.0) -> None:
+        """Shutdown the task queue gracefully
+
+        Args:
+            timeout: Maximum seconds to wait for running tasks (default 60)
+        """
         self.active = False
 
         # Save final state
@@ -320,8 +324,44 @@ class BackgroundTaskQueue:
         if self.dispatcher_thread.is_alive():
             self.dispatcher_thread.join(timeout=2.0)
 
-        # Shutdown executor (wait for running tasks)
-        self.executor.shutdown(wait=True, cancel_futures=False)
+        # Check if there are running tasks
+        with self._lock:
+            running_count = len(self._tasks_pending)
+
+        if running_count == 0:
+            # No tasks running, shutdown immediately
+            self.executor.shutdown(wait=False, cancel_futures=False)
+            return
+
+        # Wait for running tasks with countdown
+        print(f"\n⏳ Waiting for {running_count} background task(s) to complete...")
+        start_time = time.time()
+        check_interval = 1.0  # Check every second
+
+        while True:
+            elapsed = time.time() - start_time
+            remaining = max(0, timeout - elapsed)
+
+            # Check if tasks are done
+            with self._lock:
+                running_count = len(self._tasks_pending)
+
+            if running_count == 0:
+                print("\n✓ All background tasks completed")
+                self.executor.shutdown(wait=False, cancel_futures=False)
+                return
+
+            # Check if timeout reached
+            if elapsed >= timeout:
+                print(f"\n⏱️  Timeout reached - force closing {running_count} task(s)")
+                self.executor.shutdown(wait=False, cancel_futures=True)
+                return
+
+            # Show countdown (update every second)
+            print(f"⏳ Waiting for {running_count} task(s)... ({int(remaining)}s remaining)", end='\r')
+
+            # Wait before next check
+            time.sleep(min(check_interval, remaining))
 
 
 # Global singleton task queue
@@ -358,12 +398,16 @@ def get_task_queue(max_workers: int = 4, persistence_file: Optional[Path] = None
     return _global_task_queue
 
 
-def shutdown_task_queue() -> None:
-    """Shutdown global task queue"""
+def shutdown_task_queue(timeout: float = 60.0) -> None:
+    """Shutdown global task queue
+
+    Args:
+        timeout: Maximum seconds to wait for running tasks (default 60)
+    """
     global _global_task_queue
 
     if _global_task_queue is not None:
-        _global_task_queue.shutdown()
+        _global_task_queue.shutdown(timeout=timeout)
         _global_task_queue = None
 
 

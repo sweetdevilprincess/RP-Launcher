@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "claude-code-bridge": {
+      "command": "python",
+      "args": [
+        "C:\\Users\\green\\Desktop\\RP_Claude_Code_Bridge\\server.py"
+      ]
+    }
+  }
+}

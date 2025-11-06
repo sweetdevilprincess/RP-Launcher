@@ -1,0 +1,17 @@
+{
+  "stages": {
+    "connection": {
+      "passed": true,
+      "error": null
+    },
+    "authentication": {
+      "passed": true,
+      "error": null
+    },
+    "message_routing": {
+      "passed": true,
+      "error": null
+    }
+  },
+  "summary": "\u2705 All tests passed! Proxy is working correctly."
+}

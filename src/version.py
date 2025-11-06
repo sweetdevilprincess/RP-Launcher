@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 # Current version - updated when tags are created
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __fallback_commit__ = "0fa756999af4bb61160af4d0454c80ded7b6192f"
 
 

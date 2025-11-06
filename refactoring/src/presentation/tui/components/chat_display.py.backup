@@ -1,0 +1,122 @@
+"""Chat display widget for showing RP conversation history.
+
+This module provides the central chat panel that displays messages
+with appropriate styling and alignment based on sender.
+"""
+
+from __future__ import annotations
+
+from rich import box
+from rich.align import Align
+from rich.console import Group, RenderableType
+from rich.padding import Padding
+from rich.panel import Panel
+from rich.style import Style
+from rich.text import Text
+from textual.app import ComposeResult
+from textual.containers import ScrollableContainer
+from textual.widgets import Static
+
+
+class ChatDisplay(ScrollableContainer):
+    """Center panel showing RP conversation history.
+
+    This scrollable container displays chat messages with:
+    - Different styling per sender (You, System, DM)
+    - Proper alignment (right for user, center for system, left for DM)
+    - Performance optimization (limits to last 100 messages)
+    - Auto-scroll to bottom on new message
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize chat display.
+
+        Args:
+            **kwargs: Additional arguments passed to ScrollableContainer
+        """
+        super().__init__(**kwargs)
+        self.message_widget: Static | None = None
+        self.messages: list[RenderableType] = []
+        self.max_display_messages = 100  # Prevent unlimited growth
+
+    def compose(self) -> ComposeResult:
+        """Compose the chat display.
+
+        Yields:
+            Static widget for displaying messages
+        """
+        self.message_widget = Static(Group(), id="message-content")
+        yield self.message_widget
+
+    def add_message(self, sender: str, content: str) -> None:
+        """Add a message to chat history.
+
+        Args:
+            sender: Message sender ("you", "system", "claude", or custom)
+            content: Message content text
+        """
+        if not self.message_widget:
+            return
+
+        sender_key = sender.lower()
+
+        # System messages can include markup
+        if sender_key == "system":
+            body_text = Text.from_markup(content, justify="left")
+        else:
+            body_text = Text(content, justify="left")
+
+        # Map sender to display style (using semantic color names)
+        style_map = {
+            "you": ("You", "cyan", Style(bgcolor="rgb(30,40,50)")),
+            "system": ("System", "yellow", Style(bgcolor="rgb(40,40,30)")),
+            "claude": ("DM", "magenta", Style(bgcolor="rgb(40,30,40)")),
+        }
+        label, border, panel_style = style_map.get(
+            sender_key,
+            (sender or "DM", "magenta", Style(bgcolor="rgb(40,30,40)"))
+        )
+
+        # Create message bubble
+        bubble = Panel(
+            body_text,
+            title=f"[b]{label}[/]",
+            border_style=border,
+            box=box.ROUNDED,
+            padding=(0, 1),
+            style=panel_style,
+        )
+
+        # Align based on sender
+        if sender_key == "you":
+            aligned: RenderableType = Align.right(bubble)
+        elif sender_key == "system":
+            aligned = Align.center(bubble)
+        else:
+            aligned = Align.left(bubble)
+
+        # Add padding and append
+        padded = Padding(aligned, (0, 1, 1, 1))
+        self.messages.append(padded)
+
+        # Trim old messages to prevent memory growth
+        if len(self.messages) > self.max_display_messages:
+            self.messages = self.messages[-self.max_display_messages:]
+
+        # Update display
+        self.message_widget.update(Group(*self.messages))
+
+        # Scroll to bottom
+        def scroll_bottom():
+            self.scroll_end(animate=False)
+
+        self.call_later(scroll_bottom)
+
+    def clear_messages(self) -> None:
+        """Clear all messages from chat display."""
+        self.messages.clear()
+        if self.message_widget:
+            self.message_widget.update(Group())
+
+
+__all__ = ["ChatDisplay"]

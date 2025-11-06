@@ -1,0 +1,749 @@
+Analyzed 171 files
+
+================================================================================
+UNUSED IMPORTS
+================================================================================
+
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\__init__.py
+  Line 3: from contracts.automation_context import AgentContext
+  Line 3: from contracts.automation_context import AutomationContext
+  Line 3: from contracts.automation_context import AutomationResult
+  Line 3: from contracts.automation_context import LoadingContext
+  Line 9: from factory import create_automation_service
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\__init__.py
+  Line 3: from background_agent_strategy import BackgroundAgentStrategy
+  Line 4: from fallback_trigger_strategy import FallbackTriggerStrategy
+  Line 5: from immediate_agent_strategy import ImmediateAgentStrategy
+  Line 6: from registry import AgentRegistry
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\background_agent_strategy.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\base_agent.py
+  Line 7: from __future__ import annotations
+  Line 17: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\fallback_trigger_strategy.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\immediate\__init__.py
+  Line 7: from fact_extraction_agent import FactExtractionAgent
+  Line 8: from memory_extraction_agent import MemoryExtractionAgent
+  Line 9: from plot_thread_extraction_agent import PlotThreadExtractionAgent
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\immediate\fact_extraction_agent.py
+  Line 8: from __future__ import annotations
+  Line 11: from pathlib import Path
+  Line 17: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\immediate\memory_extraction_agent.py
+  Line 7: from __future__ import annotations
+  Line 14: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\immediate\plot_thread_extraction_agent.py
+  Line 7: from __future__ import annotations
+  Line 10: from pathlib import Path
+  Line 16: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\immediate_agent_strategy.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\__init__.py
+  Line 7: from chapter_compression_agent import ChapterCompressionAgent
+  Line 8: from contradiction_synthesis_agent import ContradictionSynthesisAgent
+  Line 9: from knowledge_extraction_agent import KnowledgeExtractionAgent
+  Line 10: from memory_creation_agent import MemoryCreationAgent
+  Line 11: from plot_thread_detection_agent import PlotThreadDetectionAgent
+  Line 12: from relationship_analysis_agent import RelationshipAnalysisAgent
+  Line 13: from response_analyzer_agent import ResponseAnalyzerAgent
+  Line 14: from time_tracking_agent import TimeTrackingAgent
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\chapter_compression_agent.py
+  Line 15: from __future__ import annotations
+  Line 25: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\contradiction_synthesis_agent.py
+  Line 11: from __future__ import annotations
+  Line 15: from pathlib import Path
+  Line 22: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\knowledge_extraction_agent.py
+  Line 17: from __future__ import annotations
+  Line 23: from pathlib import Path
+  Line 30: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\memory_creation_agent.py
+  Line 13: from __future__ import annotations
+  Line 15: import json
+  Line 17: from pathlib import Path
+  Line 18: from typing import Any
+  Line 24: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\plot_thread_detection_agent.py
+  Line 12: from __future__ import annotations
+  Line 16: from pathlib import Path
+  Line 17: from typing import Any
+  Line 23: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\relationship_analysis_agent.py
+  Line 13: from __future__ import annotations
+  Line 17: from pathlib import Path
+  Line 18: from typing import Any
+  Line 24: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\response_analyzer_agent.py
+  Line 15: from __future__ import annotations
+  Line 17: from typing import Any
+  Line 22: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\implementations\time_tracking_agent.py
+  Line 10: from __future__ import annotations
+  Line 14: from pathlib import Path
+  Line 15: from typing import Any
+  Line 20: from src.presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\agents\registry.py
+  Line 3: from __future__ import annotations
+  Line 5: from pathlib import Path
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\contracts\__init__.py
+  Line 3: from agent_contracts import AgentClass
+  Line 3: from agent_contracts import AgentExecutionResult
+  Line 3: from agent_contracts import AgentExecutionStats
+  Line 3: from agent_contracts import AgentID
+  Line 3: from agent_contracts import AgentMetadata
+  Line 3: from agent_contracts import AgentType
+  Line 11: from automation_context import AgentContext
+  Line 11: from automation_context import AutomationContext
+  Line 11: from automation_context import AutomationResult
+  Line 11: from automation_context import LoadingContext
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\contracts\agent_contracts.py
+  Line 10: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\contracts\automation_context.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\factory.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\orchestrator\__init__.py
+  Line 3: from orchestrator_v2 import AutomationOrchestrator
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\orchestrator\orchestrator_v2.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\services\__init__.py
+  Line 3: from agent_runner import AgentRunner
+  Line 4: from automation_service import AutomationService
+  Line 5: from prompt_builder import PromptBuilder
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\services\agent_runner.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\services\automation_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\services\prompt_builder.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\services\prompt_sections.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\templates\__init__.py
+  Line 15: from narrative_template_manager import NarrativeTemplateManager
+  Line 16: from template_cache import TemplateCache
+  Line 17: from template_loader import TemplateLoader
+  Line 18: from template_registry import TemplateRegistry
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\templates\narrative_template_manager.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\templates\template_cache.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\templates\template_loader.py
+  Line 6: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\templates\template_registry.py
+  Line 6: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\__init__.py
+  Line 19: from coordinator import TriggerCoordinator
+  Line 20: from frequency_tracker import FrequencyTracker
+  Line 21: from keyword_evaluator import KeywordEvaluator
+  Line 22: from pattern_loader import PatternLoader
+  Line 23: from protocols import TriggerContext
+  Line 23: from protocols import TriggerEvaluator
+  Line 23: from protocols import TriggerPatterns
+  Line 23: from protocols import TriggerResult
+  Line 29: from regex_evaluator import RegexEvaluator
+  Line 30: from registry import TriggerRegistry
+  Line 31: from semantic_evaluator import SemanticEvaluator
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\coordinator.py
+  Line 12: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\frequency_tracker.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\keyword_evaluator.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\pattern_loader.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\protocols.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\regex_evaluator.py
+  Line 10: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\registry.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\automation\triggers\semantic_evaluator.py
+  Line 10: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\__init__.py
+  Line 3: from entity_parser import CharacterEntity
+  Line 3: from entity_parser import ItemEntity
+  Line 3: from entity_parser import LocationEntity
+  Line 3: from entity_parser import MemoryEntry
+  Line 3: from entity_parser import MemoryLog
+  Line 3: from entity_parser import OrganizationEntity
+  Line 3: from entity_parser import parse_character
+  Line 3: from entity_parser import parse_item
+  Line 3: from entity_parser import parse_location
+  Line 3: from entity_parser import parse_memories
+  Line 3: from entity_parser import parse_organization
+  Line 16: from entity_repository import FixtureEntityRepository
+  Line 17: from entity_service import EntityService
+  Line 18: from fixtures import load_character_fixture
+  Line 18: from fixtures import load_deepseek_response_fixture
+  Line 18: from fixtures import load_item_fixture
+  Line 18: from fixtures import load_location_fixture
+  Line 18: from fixtures import load_memories_fixture
+  Line 18: from fixtures import load_organization_fixture
+  Line 18: from fixtures import load_scene_excerpt_fixture
+  Line 27: from models import EntityType
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\entity_parser.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\entity_repository.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\entity_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\fixtures.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\models.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\entities\preference_generator.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\__init__.py
+  Line 3: from chatlog_organizer import ChatlogOrganizer
+  Line 4: from models import SessionCheckpoint
+  Line 4: from models import SessionData
+  Line 4: from models import SessionMessage
+  Line 5: from repository import SessionMetadata
+  Line 5: from repository import SessionRepository
+  Line 6: from service import SessionService
+  Line 7: from write_back import SessionWriteBack
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\chatlog_organizer.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\models.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\repository.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\domain\sessions\write_back.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\fs_write_queue.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\__init__.py
+  Line 3: from filesystem import FileAccessService
+  Line 3: from filesystem import FileManager
+  Line 3: from filesystem import FileWriteQueue
+  Line 3: from filesystem import JsonStore
+  Line 3: from filesystem import MarkdownStore
+  Line 3: from filesystem import StatePaths
+  Line 3: from filesystem import TieredContext
+  Line 3: from filesystem import TieredFileLoader
+  Line 3: from filesystem import TieredLoadResult
+  Line 14: from templates.state_service import StateTemplateService
+  Line 15: from templates.template_renderer import TemplateRenderer
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\config\__init__.py
+  Line 3: from config_loader import ConfigLoader
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\__init__.py
+  Line 3: from author_notes_loader import AuthorNotesData
+  Line 3: from author_notes_loader import AuthorNotesLoader
+  Line 4: from file_access_service import FileAccessService
+  Line 4: from file_access_service import TieredContext
+  Line 5: from file_manager import FileManager
+  Line 6: from json_store import JsonStore
+  Line 7: from loaders.tiered_loader import TieredFileLoader
+  Line 7: from loaders.tiered_loader import TieredLoadResult
+  Line 8: from markdown_store import MarkdownStore
+  Line 9: from state_paths import StatePaths
+  Line 10: from write_queue import FileWriteQueue
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\author_notes_loader.py
+  Line 13: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\file_access_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\file_manager.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\json_store.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\loaders\tiered_loader.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\markdown_store.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\state_paths.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\filesystem\write_queue.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\ipc\__init__.py
+  Line 4: from ipc_protocol import IPCMessage
+  Line 4: from ipc_protocol import IPCMessageType
+  Line 4: from ipc_protocol import IPCRequest
+  Line 4: from ipc_protocol import IPCResponse
+  Line 4: from ipc_protocol import create_error_response
+  Line 4: from ipc_protocol import create_request
+  Line 4: from ipc_protocol import create_response
+  Line 4: from ipc_protocol import create_streaming_chunk
+  Line 4: from ipc_protocol import create_streaming_done
+  Line 4: from ipc_protocol import parse_message
+  Line 16: from socket_server import SocketServer
+  Line 17: from socket_client import SocketClient
+  Line 20: from ipc_channel import IpcChannel
+  Line 20: from ipc_channel import IpcInputPayload
+  Line 20: from ipc_channel import IpcResponsePayload
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\ipc\ipc_channel.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\ipc\socket_client.py
+  Line 13: from ipc_protocol import IPCRequest
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\ipc\socket_server.py
+  Line 10: from pathlib import Path
+  Line 13: from ipc_protocol import IPCMessageType
+  Line 13: from ipc_protocol import IPCResponse
+  Line 13: from ipc_protocol import create_response
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\__init__.py
+  Line 3: from base import ConversationHistory
+  Line 3: from base import ConversationMessage
+  Line 3: from base import LLMAuthError
+  Line 3: from base import LLMClient
+  Line 3: from base import LLMError
+  Line 3: from base import LLMRateLimitError
+  Line 3: from base import LLMResponse
+  Line 3: from base import MessageRole
+  Line 3: from base import ProviderCapabilities
+  Line 3: from base import StreamingLLMClient
+  Line 3: from base import UsageStats
+  Line 16: from claude_api_client import ClaudeAPIClient
+  Line 16: from claude_api_client import ClaudeAPISettings
+  Line 16: from claude_api_client import load_claude_settings
+  Line 21: from claude_sdk_client import ClaudeSDKStreamingClient
+  Line 22: from config_utils import merge_config_sources
+  Line 22: from config_utils import pick_first
+  Line 22: from config_utils import read_env_file
+  Line 22: from config_utils import read_json_file
+  Line 22: from config_utils import resolve_project_root
+  Line 29: from openai_client import OpenAIChatClient
+  Line 29: from openai_client import OpenAISettings
+  Line 29: from openai_client import load_openai_settings
+  Line 34: from openrouter_client import OpenRouterClient
+  Line 34: from openrouter_client import OpenRouterSettings
+  Line 34: from openrouter_client import load_openrouter_settings
+  Line 39: from proxy import ProxySettings
+  Line 39: from proxy import load_proxy_settings
+  Line 40: from registry import ProviderSpec
+  Line 40: from registry import get_provider
+  Line 40: from registry import list_providers
+  Line 40: from registry import register_provider
+  Line 46: from semantic_ai_client import SemanticAiClient
+  Line 47: from mock_client import MockLLMClient
+  Line 48: from llm_router import call_primary_llm
+  Line 48: from llm_router import call_secondary_llm
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\base.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\claude_api_client.py
+  Line 3: from __future__ import annotations
+  Line 17: from base import LLMClient
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\claude_sdk_client.py
+  Line 3: from __future__ import annotations
+  Line 10: import time
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\config_utils.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\llm_router.py
+  Line 10: from __future__ import annotations
+  Line 17: from presentation.bridge.bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\mock_client.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\openai_client.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\openrouter_client.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\proxy.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\registry.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\llm\semantic_ai_client.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\logging\__init__.py
+  Line 3: from agent_logging import AgentCoordinatorLogger
+  Line 3: from agent_logging import AgentLogger
+  Line 3: from agent_logging import log_to_file
+  Line 4: from python_logging import PythonLoggingService
+  Line 4: from python_logging import configure_logging
+  Line 7: from shared.interfaces import LoggingService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\logging\python_logging.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\retry\__init__.py
+  Line 3: from retry_policy import AGENT_RETRY_POLICY
+  Line 3: from retry_policy import BACKGROUND_RETRY_POLICY
+  Line 3: from retry_policy import BackoffStrategy
+  Line 3: from retry_policy import DEFAULT_RETRY_POLICY
+  Line 3: from retry_policy import RetryExecutor
+  Line 3: from retry_policy import RetryPolicy
+  Line 3: from retry_policy import RetryResult
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\retry\retry_policy.py
+  Line 23: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\rp_initialization\__init__.py
+  Line 3: from rp_creator import RPCreationError
+  Line 3: from rp_creator import RPCreator
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\rp_initialization\markdown_generator.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\rp_initialization\rp_creator.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\sessions\__init__.py
+  Line 3: from session_state_service import SessionStateService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\sessions\session_state_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\telemetry\__init__.py
+  Line 7: from performance import PerformanceProfiler
+  Line 7: from performance import PerformanceTimer
+  Line 7: from performance import timed
+  Line 7: from performance import timed_operation
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\telemetry\performance.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\templates\__init__.py
+  Line 3: from state_service import StateTemplateService
+  Line 4: from template_renderer import TemplateRenderer
+  Line 5: from character_template_generator import CharacterTemplateGenerator
+  Line 6: from schema_loader import SchemaLoader
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\templates\character_template_generator.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\templates\schema_loader.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\templates\state_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\templates\template_renderer.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\transports\__init__.py
+  Line 3: from logging_transport import LoggingTransport
+  Line 4: from proxy_transport import ProxyTransport
+  Line 4: from proxy_transport import load_proxy_config
+  Line 5: from requests_transport import RequestsTransport
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\transports\fake_transport.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\transports\logging_transport.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\transports\proxy_transport.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\infrastructure\transports\requests_transport.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\__init__.py
+  Line 3: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\bridge_service.py
+  Line 11: from src.automation.contracts import AutomationContext
+  Line 14: from src.automation.templates import TemplateRegistry
+  Line 19: from src.infrastructure.ipc import create_response
+  Line 19: from src.infrastructure.ipc import create_streaming_chunk
+  Line 19: from src.infrastructure.ipc import create_streaming_done
+  Line 29: from src.infrastructure.llm.registry import list_providers
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\base.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\branch_handler.py
+  Line 10: from __future__ import annotations
+  Line 19: from bridge_service import BridgeService
+  Line 318: import shutil
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\entity_handler.py
+  Line 10: from __future__ import annotations
+  Line 19: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\message_handler.py
+  Line 8: from __future__ import annotations
+  Line 26: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\module_handler.py
+  Line 8: from __future__ import annotations
+  Line 17: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\provider_handler.py
+  Line 8: from __future__ import annotations
+  Line 18: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\settings_handler.py
+  Line 8: from __future__ import annotations
+  Line 17: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\system_handler.py
+  Line 9: from __future__ import annotations
+  Line 20: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\template_handler.py
+  Line 8: from __future__ import annotations
+  Line 18: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\bridge\handlers\trigger_handler.py
+  Line 8: from __future__ import annotations
+  Line 17: from bridge_service import BridgeService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\__init__.py
+  Line 7: from app import RPClientApp
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\app.py
+  Line 14: from __future__ import annotations
+  Line 16: import sys
+  Line 26: from infrastructure.logging import LoggingService
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\__init__.py
+  Line 3: from app_header import AppHeader
+  Line 4: from simple_message import SimpleMessage
+  Line 5: from branches_page import BranchesPage
+  Line 6: from chat_display import ChatDisplay
+  Line 7: from chat_messages import AddMessageRequest
+  Line 7: from chat_messages import UpdateMessageRequest
+  Line 8: from context_panel import ContextPanel
+  Line 9: from entity_manager import EntityManager
+  Line 10: from llm_settings_page import LLMSettingsPage
+  Line 11: from provider_selector import ProviderSelector
+  Line 12: from rp_textarea import RPTextArea
+  Line 13: from settings_overlay import SettingsOverlay
+  Line 14: from testing_mode_toggle import TestingModeToggle
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\app_header.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\branchable_message.py
+  Line 7: from __future__ import annotations
+  Line 10: from rich.align import Align
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\branches_page.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\character_editor.py
+  Line 2: from textual.containers import Horizontal
+  Line 2: from textual.containers import Vertical
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\chat_display.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\chat_messages.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\context_panel.py
+  Line 9: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\entity_manager.py
+  Line 8: from __future__ import annotations
+  Line 12: from textual.widgets import Static
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\llm_settings_page.py
+  Line 9: from __future__ import annotations
+  Line 12: from textual.containers import Vertical
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\provider_selector.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\rp_textarea.py
+  Line 8: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\settings_overlay.py
+  Line 11: from __future__ import annotations
+  Line 632: from module_registry import MODULE_REGISTRY
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\simple_message.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\template_editor_mockup.py
+  Line 27: from rich.text import Text
+  Line 28: from rich.panel import Panel
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\testing_mode_toggle.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\trigger_editor_enhanced_mockup.py
+  Line 13: from __future__ import annotations
+  Line 16: from rich.text import Text
+  Line 19: from textual.containers import Grid
+  Line 22: from textual.widgets import OptionList
+  Line 23: from textual.widgets.option_list import Option
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\components\trigger_editor_mockup.py
+  Line 9: from __future__ import annotations
+  Line 13: from textual.containers import ScrollableContainer
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\screens\__init__.py
+  Line 3: from branch_creation_dialog import BranchCreationDialog
+  Line 4: from overlays import BaseOverlay
+  Line 4: from overlays import CharacterSheetOverlay
+  Line 4: from overlays import HelpOverlay
+  Line 4: from overlays import SettingsOverlay
+  Line 4: from overlays import StoryOverviewOverlay
+  Line 11: from rp_selection_screen import RPSelectionScreen
+  Line 12: from startup_wizard_screen import StartupWizardScreen
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\screens\branch_creation_dialog.py
+  Line 7: from __future__ import annotations
+  Line 10: from textual.containers import Vertical
+  Line 11: from textual.message import Message
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\screens\rp_selection_screen.py
+  Line 16: from textual.widgets import Label
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\screens\startup_wizard_screen.py
+  Line 12: from textual.app import App
+  Line 13: from textual.containers import Container
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\styles\__init__.py
+  Line 3: from theme import PALETTE
+  Line 3: from theme import STYLES
+  Line 3: from theme import get_app_css
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\utils\__init__.py
+  Line 3: from helpers import get_active_characters
+  Line 3: from helpers import get_arc_progress
+  Line 3: from helpers import get_chapter_info
+  Line 3: from helpers import get_response_count
+  Line 3: from helpers import read_file
+  Line 3: from helpers import read_json
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\presentation\tui\utils\helpers.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\__init__.py
+  Line 3: from models import EntityType
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\interfaces\__init__.py
+  Line 3: from ai_client import AiClient
+  Line 4: from config_service import ConfigService
+  Line 5: from logging_service import LoggingService
+  Line 6: from transport import Transport
+  Line 6: from transport import TransportError
+  Line 6: from transport import TransportRequest
+  Line 6: from transport import TransportResponse
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\interfaces\ai_client.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\interfaces\config_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\interfaces\logging_service.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\interfaces\transport.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\logging.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\shared\models.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\tools\import_audit.py
+  Line 3: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\wip\__init__.py
+  Line 23: from executor import ComparisonResult
+  Line 23: from executor import WipExecutor
+  Line 24: from loader import WipModuleLoader
+  Line 25: from registry import ComponentInfo
+  Line 25: from registry import SWAPPABLE_COMPONENTS
+  Line 26: from scanner import WipModuleScanner
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\wip\executor.py
+  Line 8: from __future__ import annotations
+  Line 13: from typing import Callable
+  Line 16: from registry import get_component_info
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\wip\loader.py
+  Line 7: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\wip\registry.py
+  Line 13: from __future__ import annotations
+
+C:\Users\green\Desktop\RP Claude Code\refactoring\src\wip\scanner.py
+  Line 8: from __future__ import annotations
+
+
+Total unused imports: 420

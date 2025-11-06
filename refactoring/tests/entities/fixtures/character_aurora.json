@@ -1,0 +1,57 @@
+{
+  "name": "Aurora Lys",
+  "type": "character",
+  "filename": "[CHAR] Aurora Lys.json",
+  "basics": {
+    "full_name": "Aurora Lys",
+    "aliases": ["Stormsong"],
+    "title": "Harmonic Pilot",
+    "age": "27",
+    "birth_date": "2198-04-17",
+    "gender": "female",
+    "species": "human",
+    "occupation": "Pilot"
+  },
+  "appearance": {
+    "physical_description": "Slender frame with luminous tattoos that glow when she sings",
+    "height": "172 cm",
+    "build": "athletic",
+    "eye_color": "violet",
+    "hair_color": "silver",
+    "distinguishing_features": ["Bioluminescent throat markings"],
+    "typical_attire": "Harmonic flight suit with resonance amplifier"
+  },
+  "personality": {
+    "alignment": "Neutral Good",
+    "core_traits": ["Empathetic", "Resolute", "Melodic"],
+    "core_mandate": "Inspire hope through music while shielding the crew from cosmic anomalies",
+    "motivations": ["Keep the Dawnrise crew unified", "Decode the Miridian harmonic signal"],
+    "fears": ["Losing her voice", "Failing the crew"],
+    "goals": ["Chart a safe passage through the Miridian Rift"],
+    "quirks": ["Hums before making major decisions"]
+  },
+  "preferences": {
+    "likes": ["Zero-g dances", "Vintage vinyl"],
+    "dislikes": ["Static interference"],
+    "hobbies": ["Composing lullabies", "Collecting meteor fragments"],
+    "habits": ["Taps rhythmic patterns on the console"]
+  },
+  "abilities": {
+    "skills": ["Harmonic navigation", "Astro-cartography"],
+    "weaknesses": ["Requires recovery time after deep resonance"],
+    "special_abilities": ["Can harmonize with storm frequencies to stabilize ships"]
+  },
+  "background": {
+    "history": "Raised on the orbital conservatory of Lyra-9, Aurora was recruited by the Elysian Alliance for her rare harmonic aptitude.",
+    "birthplace": "Lyra-9",
+    "current_residence": "Celestia Observatory",
+    "family": ["Lyra Lys (mother)", "Seren Lys (sibling)"],
+    "education": "Elysian Harmonic Academy"
+  },
+  "metadata": {
+    "related_locations": ["Celestia Observatory"],
+    "related_organizations": ["Elysian Alliance"],
+    "related_characters": ["Erik Sol", "Sophia Nyx"],
+    "tags": ["pilot", "musician", "harmonics"]
+  }
+}

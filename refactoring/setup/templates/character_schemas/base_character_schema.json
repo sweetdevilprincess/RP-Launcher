@@ -1,0 +1,69 @@
+{
+  "template_name": "Base Character",
+  "description": "Minimal required character fields - used as foundation for all templates",
+  "sections": [
+    {
+      "id": "basic_info",
+      "title": "Basic Info",
+      "fields": [
+        {
+          "id": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "help_text": "Character's name",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "age",
+          "label": "Age",
+          "type": "text",
+          "required": false,
+          "help_text": "Character's age",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "gender",
+          "label": "Gender",
+          "type": "text",
+          "required": false,
+          "help_text": "Gender/pronouns",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "appearance",
+      "title": "Appearance",
+      "fields": [
+        {
+          "id": "physical_description",
+          "label": "Physical Description",
+          "type": "textarea",
+          "required": false,
+          "help_text": "What does the character look like?",
+          "wizard_field": true,
+          "markdown_format": "**{label}:**\n{value}"
+        }
+      ]
+    },
+    {
+      "id": "personality",
+      "title": "Personality",
+      "fields": [
+        {
+          "id": "core_traits",
+          "label": "Core Traits",
+          "type": "textarea",
+          "required": false,
+          "help_text": "Key personality characteristics",
+          "wizard_field": true,
+          "markdown_format": "**{label}:**\n{value}"
+        }
+      ]
+    }
+  ]
+}

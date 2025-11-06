@@ -2,9 +2,10 @@
 
 import os
 import json
-import requests
 from pathlib import Path
 from typing import Optional
+
+from .proxy_client import ProxyClient
 
 
 # Default configuration
@@ -170,12 +171,16 @@ def call_deepseek(
     if model is None:
         model = _load_model(rp_dir)
 
-    # Build request
+    # Initialize proxy client (handles proxy routing automatically)
+    proxy = ProxyClient(rp_dir)
+
+    # Build request headers
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
+    # Build payload
     payload = {
         "model": model,
         "messages": [
@@ -184,9 +189,9 @@ def call_deepseek(
         "temperature": temperature
     }
 
-    # Make request
+    # Make request (proxy client handles routing and auth automatically)
     try:
-        response = requests.post(
+        response = proxy.post(
             endpoint,
             headers=headers,
             json=payload,

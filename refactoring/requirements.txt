@@ -1,0 +1,26 @@
+# RP Claude Code - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# TUI Framework
+textual>=0.40.0
+textual-slider>=0.1.0
+
+# LLM API Clients
+anthropic>=0.18.0
+openai>=1.0.0
+
+# HTTP & Networking
+requests>=2.31.0
+httpx>=0.24.0
+
+# Data Validation & Serialization
+pydantic>=2.0.0
+
+# Configuration & Environment
+python-dotenv>=1.0.0
+
+# Clipboard Support
+pyperclip>=1.8.2
+
+# Optional: Better async performance
+# uvloop>=0.19.0  # Uncomment for Linux/Mac (not available on Windows)
