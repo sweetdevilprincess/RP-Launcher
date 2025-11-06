@@ -13,5 +13,8 @@ watchdog>=3.0.0
 # HTTP requests for API calls (Phase 3: DeepSeek)
 requests>=2.31.0
 
+# Process monitoring for bridge shutdown detection
+psutil>=5.9.0
+
 # Standard libraries (usually included, listed for completeness)
 # pathlib, json, datetime, re, subprocess are built-in

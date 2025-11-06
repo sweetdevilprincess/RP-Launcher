@@ -1,0 +1,39 @@
+{
+  "name": "Elysian Alliance",
+  "type": "organization",
+  "filename": "[ORG] Elysian Alliance.json",
+  "basics": {
+    "founded": "2190",
+    "motto": "Harmony through vigilance",
+    "purpose": "Support frontier exploration and safeguard trade routes",
+    "alignment": "Lawful Good",
+    "influence_scope": "Miridian Rift frontier",
+    "home_base": "Celestia Observatory",
+    "leadership": "Council of Navigators"
+  },
+  "structure": {
+    "divisions": ["Harmonic Defense Corps", "Logistics Guild", "Resonance Research Directorate"],
+    "key_roles": ["Grand Navigator", "Chief Harmonicist", "Logistics Prefect"],
+    "notable_members": ["Aurora Lys", "Commander Erik Sol"]
+  },
+  "resources": {
+    "assets": ["Stormbreaker flotilla", "Resonance crystal reserves"],
+    "technology": ["Harmonic amplifiers", "Adaptive shield lattices"],
+    "support_networks": ["Frontier relief brigades", "Luminous Artisans"]
+  },
+  "relations": {
+    "allies": ["Celestia Observatory"],
+    "rivals": ["Corsair Collective"],
+    "neutral_parties": ["Free Rift Traders"]
+  },
+  "operations": {
+    "signature_methods": ["Deploy harmonic escorts", "Broker storm passage treaties"],
+    "current_projects": ["Stabilize Miridian harmonic nodes"],
+    "secrets": ["Maintains hidden archive of pre-Alliance resonance maps"]
+  },
+  "metadata": {
+    "related_characters": ["Aurora Lys"],
+    "related_locations": ["Celestia Observatory"],
+    "tags": ["alliance", "governance", "exploration"]
+  }
+}

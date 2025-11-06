@@ -1,0 +1,130 @@
+DEAD CODE AND UNUSED CODE ANALYSIS REPORT
+Date: 2025-11-05
+Files Analyzed: 171 Python files (production code only)
+
+== EXECUTIVE SUMMARY ==
+- Unused Imports: 420
+- Unused Functions: 329  
+- Unused Classes: 30
+- Missing Referenced Classes: 1 (Bug)
+- Estimated Dead Code: 8,000-10,000 lines (8-10% of codebase)
+
+== CRITICAL BUGS ==
+
+1. MISSING CLASS: QuickEntityAnalysisAgent
+   Location: src/automation/agents/immediate_agent_strategy.py
+   Issue: Class referenced but does not exist anywhere
+   Impact: Import error when immediate agents enabled
+
+2. DUPLICATE IMPORTS: Agent strategy has conflicting imports
+   Location: src/automation/agents/immediate_agent_strategy.py
+   Issue: Refactored agents shadowed by legacy imports
+   
+== TOP UNUSED CODE ==
+
+CONTRACTS (ALL UNUSED):
+- AgentMetadata: src/automation/contracts/agent_contracts.py:26
+- AgentExecutionRequest: src/automation/contracts/agent_contracts.py:58  
+- AgentExecutionResult: src/automation/contracts/agent_contracts.py:79
+- AgentExecutionStats: src/automation/contracts/agent_contracts.py:114
+Evidence: Never instantiated in production, only in tests (155 lines)
+
+BASE AGENT METHODS (ALL UNUSED):
+- call_llm(): src/automation/agents/base_agent.py:70
+- parse_json_response(): src/automation/agents/base_agent.py:131
+- save_json(): src/automation/agents/base_agent.py:199
+- append_to_json_array(): src/automation/agents/base_agent.py:227
+- save_to_entity_json(): src/automation/agents/base_agent.py:260
+- append_to_entity_json(): src/automation/agents/base_agent.py:280
+- load_entity_json(): src/automation/agents/base_agent.py:300
+Evidence: Agents access bridge/rp_dir directly instead
+
+TEMPLATE SYSTEM (ENTIRELY UNUSED):
+- template_cache.py: All methods unused (~150 lines)
+- template_loader.py: All methods unused (~120 lines)
+- template_registry.py: All methods unused (~180 lines)
+- narrative_template_manager.py: Main method unused (~80 lines)
+Evidence: ~500 lines of template infrastructure never called
+
+ORCHESTRATOR (UNUSED):
+- AutomationOrchestrator: src/automation/orchestrator/orchestrator_v2.py:9
+Evidence: Defined but never instantiated, strategies called directly
+
+ENTITY REPOSITORY (80% UNUSED):
+- get_location(), save_location(): Never used
+- get_organization(), save_organization(): Never used  
+- get_item(), save_item(): Never used
+- get_memory_log(), save_memory_log(): Never used
+- get_relationships(), save_relationships(): Never used
+Evidence: Only character methods used, ~400 lines dead
+
+SESSION REPOSITORY (90% UNUSED):
+- 15+ methods for branching/archiving/checkpoints ALL UNUSED
+- list_sessions, archive_session, create_checkpoint, etc.
+Evidence: UI doesn't use these features, ~600 lines dead
+
+== UNUSED IMPORT PATTERNS ==
+
+Pattern 1: from __future__ import annotations (170+ files)
+- Present in every file but UNUSED (Python 3.10+ has this)
+- Can remove from all files
+
+Pattern 2: TYPE_CHECKING imports (50+ files)
+- Imports under TYPE_CHECKING but types use Any/untyped
+- All agent files have unused BridgeService import
+
+Pattern 3: __init__.py exports (10+ files)
+- Exports for tests, not used in production
+- Creates misleading public API
+
+== ARCHITECTURAL PATTERNS ==
+
+1. Designed But Not Implemented:
+   - Agent contracts (4 classes, 155 lines)
+   - Orchestrator (1 class, ~100 lines)
+   - Template system (4 files, ~500 lines)
+   - Logging infrastructure (2 classes, ~150 lines)
+   Total: ~900 lines of unused architecture
+
+2. Over-Engineered Repositories:
+   - Entity repo: 80% unused methods
+   - Session repo: 90% unused methods
+   Total: ~1,000 lines with minimal usage
+
+3. Bypass Infrastructure:
+   - Services defined but bypassed
+   - Code accesses internals directly
+   Impact: Infrastructure becomes dead weight
+
+== RECOMMENDATIONS ==
+
+IMMEDIATE:
+1. Fix QuickEntityAnalysisAgent bug
+2. Fix duplicate import collision
+3. Remove unused imports (420 instances)
+
+SHORT-TERM:
+4. Delete or mark agent contracts as test-only
+5. Delete template system or move to wip/
+6. Simplify repositories (remove unused methods)
+7. Document agent base class usage policy
+
+LONG-TERM:
+8. Decide: Use contracts OR delete them
+9. Decide: Integrate orchestrator OR delete it
+10. Decide: Enforce services OR allow direct access
+
+== METRICS ==
+- 16.8% of imports are dead
+- 16.5% of functions are dead  
+- 7.5% of classes are dead
+- 8-10% total dead code volume
+
+== IMPACT ==
+Dead code does NOT cause bugs but:
+- Makes code harder to understand
+- Increases maintenance burden
+- Signals architectural confusion
+- Slows new development
+
+Cleaning up would significantly improve code health.

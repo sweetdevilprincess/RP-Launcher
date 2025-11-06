@@ -1,0 +1,21 @@
+{
+  "contradictions": [],
+  "version": "1.0",
+  "session_id": "main",
+  "last_updated": "2025-11-05T16:11:56.988247+00:00",
+  "stats": {
+    "total": 0,
+    "pending": 0,
+    "resolved": 0,
+    "dismissed": 0
+  },
+  "chapter_analyses": [
+    {
+      "chapter": 1,
+      "analyzed_at": "2025-11-05T16:11:56.897789+00:00",
+      "contradictions_count": 1,
+      "consistency_score": 8.5,
+      "notes": "Overall chapter maintains good consistency"
+    }
+  ]
+}

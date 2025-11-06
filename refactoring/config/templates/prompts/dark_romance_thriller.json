@@ -1,0 +1,80 @@
+{
+  "genre": "dark_romance_thriller",
+  "display_name": "Dark Romance / Psychological Thriller",
+  "composite": true,
+  "base_genres": ["dark_romance", "thriller"],
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Passion balanced with danger and menace",
+        "Undercurrents of threat beneath intimate moments",
+        "Suspense and psychological tension escalating",
+        "Seductive but unsettling - beauty and danger intertwined",
+        "Power dynamics create both attraction and fear",
+        "Information asymmetry heightens romantic tension",
+        "Time pressure makes choices more desperate"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Slow burn romance with sudden thriller beats",
+        "Intimate scenes get full development",
+        "Contrast: tender moments shattered by sharp danger",
+        "Time pressure from thriller, emotional depth from romance",
+        "Push-pull rhythm of attraction and suspicion",
+        "Escalating stakes affect relationship dynamics",
+        "Don't rush past psychological complexity"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Charged subtext and double meanings",
+        "Power dynamics reflected in speech",
+        "Characters may lie about intentions and feelings",
+        "Vulnerability appears in unexpected moments",
+        "Questions that probe both mystery and emotion",
+        "Intimacy and interrogation blend together",
+        "Threats can be veiled in seduction"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Layer romance with thriller elements (danger, secrets, betrayal)",
+        "Physical proximity increases both tension types",
+        "Reader should feel attracted and suspicious",
+        "Revelations affect both plot and relationship",
+        "Intimate moments have stakes beyond emotion",
+        "Use dramatic irony about character intentions",
+        "Power shifts during romantic and dangerous moments"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Sensory details with darker undertones",
+        "Physical reactions to both desire and fear",
+        "Body language that could mean attraction or threat",
+        "Contrast beauty with danger (red silk and sharp knives)",
+        "Settings that are both romantic and ominous",
+        "Psychological state through physical sensation",
+        "Environmental details that create unease"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't soften dangerous characters just for romance",
+        "Avoid making thriller plot an afterthought to romance",
+        "Don't sacrifice suspense for relationship resolution",
+        "Resist making everything 'secretly wholesome'",
+        "Don't ignore consent issues in dangerous dynamics",
+        "Avoid predictable thriller beats or romance tropes",
+        "Don't rush past moral complexity for either genre"
+      ]
+    }
+  }
+}

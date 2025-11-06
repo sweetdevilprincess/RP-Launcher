@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 RP Client TUI - Enhanced Terminal Interface for Claude Code RP System
 
@@ -10,6 +11,14 @@ Features:
 """
 
 import sys
+import io
+
+# Ensure UTF-8 encoding for all output (MUST be first)
+if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+if sys.stderr.encoding and sys.stderr.encoding.lower() != 'utf-8':
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 import json
 import time
 import subprocess
@@ -21,30 +30,96 @@ from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import (
-    Header,
     Footer,
     Static,
     TextArea,
     Button,
-    Label,
-    ProgressBar,
     Input,
     Switch,
+    Tabs,
+    Tab,
+    ContentSwitcher,
 )
 from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.message import Message
-from rich.text import Text
+from textwrap import dedent
+
+from rich import box
+from rich.align import Align
+from rich.console import Group, RenderableType
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.padding import Padding
+from rich.style import Style
+from rich.table import Table
+from rich.text import Text
 
-# Import write queue for efficient file operations
-import sys
+# Setup path for local imports
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(SCRIPT_DIR)
+
+for candidate in (SCRIPT_DIR, PARENT_DIR):
+    if candidate not in sys.path:
+        sys.path.insert(0, candidate)
+
 from fs_write_queue import get_write_queue
-from src.automation.core import get_response_count as core_get_response_count
-from src.file_manager import FileManager
+from automation.core import get_response_count as core_get_response_count
+from file_manager import FileManager
+
+PALETTE = {
+    "primary": "#723d46",        # Wine - headers, overlays
+    "surface": "#eaeada",         # Sage 800 - main light background
+    "panel": "#dfe0c8",          # Sage 700 - sidebar panels
+    "boost": "#ffedcb",          # Peach Yellow 700 - elevated areas
+    "accent": "#e26d5c",         # Bittersweet - highlights, buttons
+    "text": "#472d30",           # Van Dyke - primary text
+    "text_muted": "#723d46",     # Wine - secondary text
+    "border": "#723d46",         # Wine - borders and dividers
+    "warning": "#e26d5c",        # Bittersweet - warnings
+}
+
+# Semantic style mappings - reference PALETTE colors by component use
+STYLES = {
+    # Chat message colors
+    "message_you_text": PALETTE['accent'],
+    "message_you_bg": PALETTE['panel'],
+    "message_system_text": PALETTE['accent'],
+    "message_system_bg": PALETTE['boost'],
+    "message_dm_text": PALETTE['accent'],
+    "message_dm_bg": PALETTE['surface'],
+
+    # Context panel card borders
+    "card_chapter": PALETTE['primary'],
+    "card_time": PALETTE['accent'],
+    "card_location": PALETTE['primary'],
+    "card_characters": PALETTE['accent'],
+    "card_momentum": PALETTE['border'],
+
+    # Progress bar stages
+    "progress_low": PALETTE['primary'],
+    "progress_mid": PALETTE['accent'],
+    "progress_high": PALETTE['text_muted'],
+
+    # Context panel card background
+    "card_bg": PALETTE['boost'],
+
+    # Status message colors (using existing palette)
+    "status_error": PALETTE['warning'],
+    "status_success": PALETTE['accent'],
+    "status_waiting": PALETTE['text_muted'],
+    "status_info": PALETTE['text'],
+
+    # Text styling colors
+    "text_dim": PALETTE['text_muted'],
+    "text_emphasis": PALETTE['accent'],
+
+    # Button text colors
+    "button_text_default": PALETTE['surface'],
+    "button_text_primary": PALETTE['surface'],
+}
 
 
 # =============================================================================
@@ -76,11 +151,11 @@ def get_chapter_info(state_file: Path) -> tuple[str, str, str]:
     location = "Unknown"
 
     for line in content.split('\n'):
-        if line.startswith('**Chapter'):
+        if line.startswith('**Current Chapter'):
             chapter = line.split(':', 1)[1].strip() if ':' in line else "Unknown"
-        elif line.startswith('**Timestamp'):
+        elif line.startswith('**Current Timestamp'):
             timestamp = line.split(':', 1)[1].strip() if ':' in line else "Unknown"
-        elif line.startswith('**Location'):
+        elif line.startswith('**Current Location'):
             location = line.split(':', 1)[1].strip() if ':' in line else "Unknown"
 
     return chapter, timestamp, location
@@ -127,7 +202,27 @@ def get_arc_progress(counter_file: Path, arc_frequency: int = 50) -> tuple[int, 
 # OVERLAY SCREENS
 # =============================================================================
 
-class CharacterSheetOverlay(ModalScreen):
+class BaseOverlay(ModalScreen):
+    """Base class for overlay screens - reduces code duplication"""
+
+    BINDINGS = [("escape", "dismiss", "Close")]
+
+    def __init__(self, rp_dir: Path):
+        super().__init__()
+        self.rp_dir = rp_dir
+
+    def _create_overlay(self, title: str, content: str, footer: str = "[ESC to close]") -> ComposeResult:
+        """Helper to create standard overlay layout"""
+        with Container(id="overlay-container"):
+            yield Static(title, id="overlay-title")
+            yield ScrollableContainer(
+                Static(Markdown(content)),
+                id="overlay-content"
+            )
+            yield Static(footer, id="overlay-footer")
+
+
+class CharacterSheetOverlay(BaseOverlay):
     """Overlay for viewing {{user}} character sheet (F2) - combines Memory + character info"""
 
     BINDINGS = [("escape", "dismiss", "Close")]
@@ -233,7 +328,7 @@ class StoryOverviewOverlay(ModalScreen):
 
         # Update tab selector to show active tab
         tab_selector = self.query_one("#tab-selector", Static)
-        tab_selector.update("[bold cyan][1] Arc[/]  [dim][2] Genome[/]")
+        tab_selector.update(f"[bold {PALETTE['accent']}][1] Arc[/]  [{STYLES['text_dim']}][2] Genome[/]")
 
     def show_genome_content(self) -> None:
         """Load and display story genome"""
@@ -248,17 +343,11 @@ class StoryOverviewOverlay(ModalScreen):
 
         # Update tab selector to show active tab
         tab_selector = self.query_one("#tab-selector", Static)
-        tab_selector.update("[dim][1] Arc[/]  [bold cyan][2] Genome[/]")
+        tab_selector.update(f"[{STYLES['text_dim']}][1] Arc[/]  [bold {PALETTE['accent']}][2] Genome[/]")
 
 
-class CharactersOverlay(ModalScreen):
+class CharactersOverlay(BaseOverlay):
     """Overlay for viewing characters (Ctrl+C)"""
-
-    BINDINGS = [("escape", "dismiss", "Close")]
-
-    def __init__(self, rp_dir: Path):
-        super().__init__()
-        self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
         chars_dir = self.rp_dir / "characters"
@@ -271,63 +360,45 @@ class CharactersOverlay(ModalScreen):
 
         content = "# 🎭 Characters\n\n"
         content += "## Active This Scene\n"
-        for char in active:
-            content += f"- **{char}**\n"
+        if active:
+            for char in active:
+                content += f"- **{char}**\n"
+        else:
+            content += "*No active characters*\n"
 
         content += "\n## All Characters\n"
-        for char_file in char_files:
-            name = char_file.stem
-            content += f"- {name}\n"
+        if char_files:
+            for char_file in char_files:
+                name = char_file.stem
+                content += f"- {name}\n"
+        else:
+            content += "*No character files found*\n"
 
-        content += "\n*Select a character file from the file explorer to view full sheet*"
+        content += "\n*Tip: Select a character file from the file explorer to view full sheet*"
 
-        with Container(id="overlay-container"):
-            yield Static("🎭 Characters", id="overlay-title")
-            yield ScrollableContainer(
-                Static(Markdown(content)),
-                id="overlay-content"
-            )
-            yield Static("[ESC to close]", id="overlay-footer")
+        yield from self._create_overlay("🎭 Characters", content)
 
 
-class SceneNotesOverlay(ModalScreen):
+class SceneNotesOverlay(BaseOverlay):
     """Overlay for viewing scene notes (Ctrl+N)"""
-
-    BINDINGS = [("escape", "dismiss", "Close")]
-
-    def __init__(self, rp_dir: Path):
-        super().__init__()
-        self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
         notes_file = self.rp_dir / "SCENE_NOTES.md"
         content = read_file(notes_file)
 
         if not content:
-            content = "# Scene Notes\n\n*No scene notes found.*"
+            content = "# Scene Notes\n\n*No scene notes found. Edit SCENE_NOTES.md to add session guidance.*"
 
-        with Container(id="overlay-container"):
-            yield Static("📝 Scene Notes", id="overlay-title")
-            yield ScrollableContainer(
-                Static(Markdown(content)),
-                id="overlay-content"
-            )
-            yield Static("[ESC to close]", id="overlay-footer")
+        yield from self._create_overlay("📝 Scene Notes", content)
 
 
-class EntitiesOverlay(ModalScreen):
+class EntitiesOverlay(BaseOverlay):
     """Overlay for viewing entities from entities/ directory"""
-
-    BINDINGS = [("escape", "dismiss", "Close")]
-
-    def __init__(self, rp_dir: Path):
-        super().__init__()
-        self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
         # Use EntityManager to get all indexed entities
         try:
-            from src.entity_manager import EntityManager
+            from entity_manager import EntityManager
             entity_mgr = EntityManager(self.rp_dir)
 
             content = "# 🎭 Entities\n\n"
@@ -361,23 +432,11 @@ class EntitiesOverlay(ModalScreen):
         except Exception as e:
             content = f"# 🎭 Entities\n\n*Error loading entities: {e}*"
 
-        with Container(id="overlay-container"):
-            yield Static("🎭 Entities", id="overlay-title")
-            yield ScrollableContainer(
-                Static(Markdown(content)),
-                id="overlay-content"
-            )
-            yield Static("[ESC to close]", id="overlay-footer")
+        yield from self._create_overlay("🎭 Entities", content)
 
 
-class StatusOverlay(ModalScreen):
+class StatusOverlay(BaseOverlay):
     """Overlay for system status (Ctrl+T)"""
-
-    BINDINGS = [("escape", "dismiss", "Close")]
-
-    def __init__(self, rp_dir: Path):
-        super().__init__()
-        self.rp_dir = rp_dir
 
     def compose(self) -> ComposeResult:
         # Read status info
@@ -414,8 +473,34 @@ class StatusOverlay(ModalScreen):
         else:
             content += "*No recent activity logged.*\n"
 
+        yield from self._create_overlay("📊 Status", content)
+
+
+class ModulesTabScreen(ModalScreen):
+    """Tab screen for module management - placeholder for now"""
+
+    BINDINGS = [("escape", "dismiss", "Close")]
+
+    def __init__(self, rp_dir: Path):
+        super().__init__()
+        self.rp_dir = rp_dir
+
+    def compose(self) -> ComposeResult:
+        content = """# 🔧 Module Management
+
+This is a placeholder for the Modules management interface.
+
+## Coming Soon
+
+This tab will contain controls for:
+- Enabling/disabling system modules
+- Configuring automation settings
+- Managing RP features
+
+**For now**, use **F6** to access the Module Toggles overlay.
+"""
         with Container(id="overlay-container"):
-            yield Static("📊 Status", id="overlay-title")
+            yield Static("🔧 Modules", id="overlay-title")
             yield ScrollableContainer(
                 Static(Markdown(content)),
                 id="overlay-content"
@@ -552,7 +637,7 @@ class ModuleTogglesOverlay(ModalScreen):
                 if char_config.get("enabled", True):
                     # Count personality cores
                     try:
-                        from src.entity_manager import EntityManager
+                        from entity_manager import EntityManager
                         entity_mgr = EntityManager(self.rp_dir)
                         entity_mgr.scan_and_index()
                         core_count = sum(1 for e in entity_mgr.entities.values() if e.personality_core)
@@ -561,9 +646,9 @@ class ModuleTogglesOverlay(ModalScreen):
                         pass
                     yield Static("")
 
-                with Horizontal(classes="button-row"):
-                    yield Button("Save", variant="primary", id="save-modules-button")
-                    yield Button("Cancel", variant="default", id="cancel-modules-button")
+            with Horizontal(classes="button-row"):
+                yield Button("Save", variant="primary", id="save-modules-button")
+                yield Button("Cancel", variant="default", id="cancel-modules-button")
 
             yield Static("[ESC to close]", id="settings-footer")
 
@@ -663,17 +748,28 @@ class SettingsScreen(ModalScreen):
     def __init__(self, rp_dir: Path):
         super().__init__()
         self.rp_dir = rp_dir
-        self.config_file = rp_dir.parent / "config" / "config.json"  # Global config
+        # Use global config file (same location tui_bridge reads from)
+        base_dir = Path(__file__).parent.parent
+        self.config_file = base_dir / "config" / "config.json"  # Global config
 
     def compose(self) -> ComposeResult:
         # Load existing config
         config = self.load_config()
         claude_api_key = config.get("anthropic_api_key", "")
+        # Support both new generic names and legacy anthropic-specific names
+        proxy_url = config.get("proxy_url", "") or config.get("anthropic_proxy_url", "")
+        proxy_token = config.get("proxy_token", "") or config.get("anthropic_proxy_token", "")
         deepseek_api_key = config.get("deepseek_api_key", "")
         openrouter_model = config.get("openrouter_model", "deepseek/deepseek-chat-v3.1")
+        primary_llm = config.get("primary_llm", "anthropic_sdk")
         use_api_mode = config.get("use_api_mode", False)
+        if primary_llm != "anthropic_sdk":
+            use_api_mode = True
         use_proxy = config.get("use_proxy", False)
         thinking_mode = config.get("thinking_mode", "megathink")
+        openai_api_key = config.get("openai_api_key", "")
+        openai_model = config.get("openai_model", "gpt-4.1")
+        openai_api_base = config.get("openai_api_base", "")
 
         # Mask API keys for display
         def mask_key(key):
@@ -686,16 +782,31 @@ class SettingsScreen(ModalScreen):
 
         masked_claude_key = mask_key(claude_api_key)
         masked_deepseek_key = mask_key(deepseek_api_key)
+        masked_openai_key = mask_key(openai_api_key)
 
         with Container(id="settings-container"):
             yield Static("⚙️ Settings", id="settings-title")
 
             with ScrollableContainer(id="settings-content"):
+                yield Static("## LLM Provider", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("Primary LLM Provider (anthropic_sdk, anthropic_api, openai_api):", classes="settings-label")
+                yield Input(
+                    value=primary_llm,
+                    placeholder="anthropic_sdk",
+                    id="primary-llm-input"
+                )
+                yield Static("  ℹ When set to openai_api, the bridge will use OpenAI Responses API.", classes="settings-info")
+                yield Static("")
+
                 yield Static("## Claude API Configuration", classes="settings-section-title")
                 yield Static("")
 
                 yield Static("API Mode (uses Anthropic API with prompt caching):", classes="settings-label")
-                yield Switch(value=use_api_mode, id="api-mode-switch")
+                yield Switch(value=use_api_mode, id="api-mode-switch", disabled=primary_llm != "anthropic_sdk")
+                if primary_llm != "anthropic_sdk":
+                    yield Static("  ℹ API mode is automatically enabled for non-SDK providers.", classes="settings-info")
                 yield Static("")
 
                 yield Static("Anthropic API Key (for main Claude responses):", classes="settings-label")
@@ -713,9 +824,78 @@ class SettingsScreen(ModalScreen):
                 )
                 yield Static("")
 
+                yield Static("Proxy URL (optional - works for both Anthropic & DeepSeek, e.g. http://localhost:42069):", classes="settings-label")
+                yield Input(
+                    placeholder="http://localhost:42069",
+                    value=proxy_url,
+                    id="proxy-url-input"
+                )
+                yield Static("")
+
+                yield Static("Proxy Access Token (leave blank to keep, type 'clear' to remove):", classes="settings-label")
+                if proxy_token:
+                    yield Static("Current: **** (hidden)", classes="settings-info")
+                else:
+                    yield Static("Current: Not set", classes="settings-info")
+                yield Static("  • Required when routing through proxy servers", classes="settings-info")
+                yield Static("  • Works for both Anthropic API and DeepSeek/OpenRouter", classes="settings-info")
+                yield Static("  • Paste the bearer token without the 'Bearer ' prefix", classes="settings-info")
+                yield Input(
+                    placeholder="your-access-token",
+                    password=True,
+                    id="proxy-token-input"
+                )
+                yield Static("")
+
+                yield Button("🧪 Test Proxy Connection", variant="default", id="test-proxy-button")
+                yield Static("(Tests connection, authentication, and message routing)", classes="settings-info")
+                yield Static("")
+
+                yield Static("Proxy Enabled (routes API calls through proxy):", classes="settings-label")
+                yield Switch(value=use_proxy, id="proxy-enabled-switch")
+                yield Static("")
+
                 yield Static("💡 Get Claude key from: https://console.anthropic.com/settings/keys",
                            classes="settings-hint")
                 yield Static("   ⚠️  Must start with 'sk-ant-'", classes="settings-hint")
+                yield Static("")
+
+                yield Static("## OpenAI API Configuration", classes="settings-section-title")
+                yield Static("")
+
+                yield Static("OpenAI API Key (for ChatGPT / GPT-4 models):", classes="settings-label")
+                if openai_api_key:
+                    yield Static(f"Current: {masked_openai_key}", classes="settings-info")
+                else:
+                    yield Static("Current: Not set", classes="settings-info")
+                yield Static("")
+
+                yield Static("Enter new OpenAI API key (leave blank to keep current):", classes="settings-label")
+                yield Input(
+                    placeholder="sk-...",
+                    password=True,
+                    id="openai-api-key-input"
+                )
+                yield Static("")
+
+                yield Static("OpenAI Model (default gpt-4.1):", classes="settings-label")
+                yield Input(
+                    placeholder="gpt-4.1",
+                    value=openai_model,
+                    id="openai-model-input"
+                )
+                yield Static("")
+
+                yield Static("OpenAI API Base (optional - override for Azure / proxy):", classes="settings-label")
+                yield Input(
+                    placeholder="https://api.openai.com/v1",
+                    value=openai_api_base,
+                    id="openai-base-input"
+                )
+                yield Static("")
+
+                yield Static("   \u2139\ufe0f  Get API keys at: https://platform.openai.com/account/api-keys", classes="settings-info")
+                yield Static("   \u2139\ufe0f  Leave base blank unless using Azure or a proxy.", classes="settings-info")
                 yield Static("")
 
                 yield Static("## Thinking Mode Configuration", classes="settings-section-title")
@@ -784,21 +964,9 @@ class SettingsScreen(ModalScreen):
                 yield Static("   Examples: deepseek/deepseek-chat-v3-0324, anthropic/claude-3.5-sonnet", classes="settings-info")
                 yield Static("")
 
-                yield Static("## Proxy Settings", classes="settings-section-title")
-                yield Static("")
-
-                yield Static("Proxy Mode (prepend custom instructions to all prompts):", classes="settings-label")
-                yield Switch(value=use_proxy, id="proxy-switch")
-                yield Static("")
-
-                yield Static("📝 When enabled, adds instructions from proxy_prompt.txt", classes="settings-info")
-                yield Static("   Edit proxy_prompt.txt to customize the injected prompt", classes="settings-info")
-                yield Static("")
-
-                with Horizontal(classes="button-row"):
-                    yield Button("Save", variant="primary", id="save-button")
-                    yield Button("Cancel", variant="default", id="cancel-button")
-                    yield Button("Edit Proxy", variant="default", id="edit-proxy-button")
+            with Horizontal(classes="button-row"):
+                yield Button("Save", variant="primary", id="save-button")
+                yield Button("Cancel", variant="default", id="cancel-button")
 
             yield Static("[ESC to close]", id="settings-footer")
 
@@ -830,80 +998,114 @@ class SettingsScreen(ModalScreen):
             self.dismiss()
         elif event.button.id == "save-button":
             self.save_settings()
-        elif event.button.id == "edit-proxy-button":
-            self.edit_proxy_file()
+        elif event.button.id == "test-proxy-button":
+            self.test_proxy_connection()
 
-    def edit_proxy_file(self) -> None:
-        """Open proxy prompt file in default editor"""
-        proxy_file = self.config_file.parent / "proxy_prompt.txt"
+    def test_proxy_connection(self) -> None:
+        """Test proxy connection through the bridge"""
+        # Get proxy URL and token from inputs
+        proxy_url_input = self.query_one("#proxy-url-input", Input)
+        proxy_token_input = self.query_one("#proxy-token-input", Input)
 
-        # Create default proxy file if it doesn't exist
-        if not proxy_file.exists():
-            default_content = """# Proxy Prompt - Injected Before All Messages
+        proxy_url = proxy_url_input.value.strip()
+        proxy_token = proxy_token_input.value.strip()
 
-This prompt will be prepended to every message sent through the RP launcher when Proxy Mode is enabled.
+        # Validate inputs
+        if not proxy_url:
+            self.app.notify("❌ Proxy URL is required to test", severity="error", timeout=5)
+            return
 
-Use this for:
-- System-level instructions that apply to all responses
-- Role-play style guidance
-- Custom formatting rules
-- Behavior modifications
+        if not proxy_token:
+            self.app.notify("❌ Proxy token is required to test", severity="error", timeout=5)
+            return
 
-Example:
----
-You are an expert storyteller with a focus on vivid descriptions and emotional depth.
-Always maintain character consistency and advance the plot naturally.
----
+        # Show testing status
+        self.app.notify("🧪 Testing proxy connection... (Stage 1/3)", severity="information", timeout=10)
 
-Replace this with your own instructions:
-"""
-            try:
-                proxy_file.write_text(default_content, encoding='utf-8')
-            except Exception as e:
-                self.app.notify(f"Error creating proxy file: {e}", severity="error")
-                return
-
-        # Open in default editor
-        import subprocess
-        import sys
-
+        # Create test request file for bridge
         try:
-            if sys.platform == "win32":
-                subprocess.Popen(["notepad.exe", str(proxy_file)])
-            else:
-                subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", str(proxy_file)])
+            test_request = {
+                "proxy_url": proxy_url,
+                "proxy_token": proxy_token
+            }
 
-            self.app.notify(
-                "Proxy file opened in editor. Save and close to apply changes.",
-                severity="information",
-                timeout=5
-            )
+            # Write test request to state directory
+            state_dir = self.config_file.parent  # This is the config dir, we need state
+            # Since we don't have direct access to the RP state dir from here,
+            # we'll use a file in the config directory as a workaround
+            test_request_file = self.config_file.parent / "proxy_test_request.json"
+            test_results_file = self.config_file.parent / "proxy_test_results.json"
+
+            # Clean up old results if they exist
+            if test_results_file.exists():
+                test_results_file.unlink()
+
+            # Write the test request
+            import json
+            with open(test_request_file, 'w', encoding='utf-8') as f:
+                json.dump(test_request, f)
+
+            # Wait a bit for bridge to process (in a real implementation, this would be async)
+            # For now, show a result if the file was created
+            if test_request_file.exists():
+                self.app.notify(
+                    "✅ Proxy test request sent to bridge.\n"
+                    "Check bridge logs for detailed test results.",
+                    severity="information",
+                    timeout=10
+                )
         except Exception as e:
-            self.app.notify(f"Error opening proxy file: {e}", severity="error")
+            self.app.notify(f"❌ Error initiating proxy test: {e}", severity="error", timeout=10)
 
     def save_settings(self) -> None:
         """Save settings and close"""
         # Get widgets
         api_mode_switch = self.query_one("#api-mode-switch", Switch)
+        provider_input = self.query_one("#primary-llm-input", Input)
         claude_key_input = self.query_one("#claude-api-key-input", Input)
+        openai_key_input = self.query_one("#openai-api-key-input", Input)
+        openai_model_input = self.query_one("#openai-model-input", Input)
+        openai_base_input = self.query_one("#openai-base-input", Input)
+        proxy_url_input = self.query_one("#proxy-url-input", Input)
+        proxy_token_input = self.query_one("#proxy-token-input", Input)
         thinking_mode_input = self.query_one("#thinking-mode-input", Input)
         deepseek_key_input = self.query_one("#deepseek-api-key-input", Input)
         model_input = self.query_one("#openrouter-model-input", Input)
-        proxy_switch = self.query_one("#proxy-switch", Switch)
+        proxy_enabled_switch = self.query_one("#proxy-enabled-switch", Switch)
 
         # Load existing config
         config = self.load_config()
 
-        # Track if API mode changed (this requires restart)
-        old_api_mode = config.get("use_api_mode", False)
-        new_api_mode = api_mode_switch.value
-        api_mode_changed = old_api_mode != new_api_mode
+        # Update primary provider if changed
+        allowed_providers = {"anthropic_sdk", "anthropic_api", "openai_api"}
+        current_provider = config.get("primary_llm", "anthropic_sdk")
+        new_provider_raw = provider_input.value.strip()
+        if new_provider_raw:
+            provider_choice = new_provider_raw.lower()
+            if provider_choice not in allowed_providers:
+                self.app.notify(
+                    f"Invalid provider '{provider_choice}'! Choose from: {', '.join(sorted(allowed_providers))}",
+                    severity="error",
+                    timeout=10
+                )
+                return
+            config["primary_llm"] = provider_choice
+        elif "primary_llm" not in config:
+            config["primary_llm"] = "anthropic_sdk"
+        provider_choice = config.get("primary_llm", "anthropic_sdk")
+        provider_changed = provider_choice != current_provider
 
-        # Update API mode
+        # Determine API mode (OpenAI/Anthropic API force API mode)
+        old_api_mode = config.get("use_api_mode", False)
+        if provider_choice == "anthropic_sdk":
+            new_api_mode = api_mode_switch.value
+        else:
+            new_api_mode = True
+        api_mode_changed = old_api_mode != new_api_mode
         config["use_api_mode"] = new_api_mode
 
-        # Update proxy mode
-        config["use_proxy"] = proxy_switch.value
+        # Update proxy enabled state
+        config["use_proxy"] = proxy_enabled_switch.value
 
         # Update Claude API key if provided
         new_claude_key = claude_key_input.value.strip()
@@ -917,6 +1119,54 @@ Replace this with your own instructions:
                 )
                 return
             config["anthropic_api_key"] = new_claude_key
+
+        # Update proxy URL if modified
+        new_proxy_url = proxy_url_input.value.strip()
+        if new_proxy_url:
+            if new_proxy_url.lower() == "clear":
+                config.pop("proxy_url", None)
+            else:
+                config["proxy_url"] = new_proxy_url
+
+        # Update proxy token if provided
+        new_proxy_token = proxy_token_input.value.strip()
+        if new_proxy_token:
+            if new_proxy_token.lower() == "clear":
+                config.pop("proxy_token", None)
+            else:
+                config["proxy_token"] = new_proxy_token
+
+        # Update OpenAI API key if provided
+        new_openai_key = openai_key_input.value.strip()
+        openai_key_updated = False
+        if new_openai_key:
+            if not new_openai_key.startswith("sk-"):
+                self.app.notify(
+                    "Warning: OpenAI API key typically starts with 'sk-'",
+                    severity="warning",
+                    timeout=5
+                )
+            config["openai_api_key"] = new_openai_key
+            openai_key_updated = True
+
+        # Update OpenAI model if provided
+        new_openai_model = openai_model_input.value.strip()
+        openai_model_updated = False
+        if new_openai_model:
+            config["openai_model"] = new_openai_model
+            openai_model_updated = True
+        elif "openai_model" not in config:
+            config["openai_model"] = "gpt-4.1"
+
+        # Update OpenAI base URL if provided
+        new_openai_base = openai_base_input.value.strip()
+        openai_base_updated = False
+        if new_openai_base:
+            if new_openai_base.lower() == "clear":
+                config.pop("openai_api_base", None)
+            else:
+                config["openai_api_base"] = new_openai_base
+            openai_base_updated = True
 
         # Update thinking mode if provided
         new_thinking_mode = thinking_mode_input.value.strip().lower()
@@ -970,8 +1220,16 @@ Replace this with your own instructions:
             mode_status = "enabled" if config["use_api_mode"] else "disabled"
 
             updates = []
+            if provider_changed:
+                updates.append(f"Provider set to {provider_choice}")
             if new_claude_key:
                 updates.append("Claude key updated")
+            if openai_key_updated:
+                updates.append("OpenAI key updated")
+            if openai_model_updated:
+                updates.append(f"OpenAI model set to {config.get('openai_model')}")
+            if openai_base_updated:
+                updates.append("OpenAI base updated")
             if new_thinking_mode:
                 updates.append(f"Thinking mode set to {new_thinking_mode}")
             if new_deepseek_key:
@@ -983,19 +1241,21 @@ Replace this with your own instructions:
 
             proxy_status = "enabled" if config["use_proxy"] else "disabled"
             self.app.notify(
-                f"✅ {', '.join(updates)}! API: {mode_status}, Proxy: {proxy_status}",
+                f"✅ {', '.join(updates)}! API: {mode_status}, Proxy Routing: {proxy_status}",
                 severity="information",
                 timeout=5
             )
 
             # Show restart message if API mode or thinking mode changed
-            needs_restart = api_mode_changed or new_thinking_mode
+            needs_restart = api_mode_changed or new_thinking_mode or provider_changed
             if needs_restart:
                 changes = []
                 if api_mode_changed:
                     changes.append("API mode")
                 if new_thinking_mode:
                     changes.append("thinking mode")
+                if provider_changed:
+                    changes.append("provider")
 
                 self.app.notify(
                     f"⚠️  {', '.join(changes)} changed - press F10 to restart bridge",
@@ -1018,20 +1278,25 @@ Replace this with your own instructions:
 # CONTEXT PANEL
 # =============================================================================
 
-class ContextPanel(Static):
-    """Left panel showing context, progress, and quick access menu"""
+class ContextPanel(ScrollableContainer):
+    """Left panel showing context, progress, and quick access menu - now scrollable"""
 
     def __init__(self, rp_dir: Path, **kwargs):
         super().__init__(**kwargs)
         self.rp_dir = rp_dir
+        self.content_widget = Static("", expand=True)
+
+    def compose(self) -> ComposeResult:
+        """Compose the scrollable context panel"""
+        yield self.content_widget
 
     def on_mount(self) -> None:
-        """Set up auto-refresh"""
-        self.set_interval(2.0, self.refresh_context)
+        """Set up auto-refresh with optimized interval"""
+        self.set_interval(3.0, self.refresh_context)  # Increased from 2s to 3s
         self.refresh_context()
 
     def refresh_context(self) -> None:
-        """Update context display"""
+        """Update context display with improved formatting - more compact"""
         state_file = self.rp_dir / "state" / "current_state.md"
         counter_file = self.rp_dir / "state" / "response_counter.json"
 
@@ -1040,33 +1305,94 @@ class ContextPanel(Static):
         progress, next_arc, percentage = get_arc_progress(counter_file)
         count = get_response_count(counter_file)
 
-        # Build progress bar
+        def clean_value(value: Optional[str]) -> str:
+            """Normalize strings for display within the context sidebar."""
+            if not value:
+                return "—"
+            value = value.strip()
+            return value or "—"
+
+        def make_panel(title: str, lines: list[Text], border: str) -> Panel:
+            """Build a compact panel with centered content."""
+            renderables = lines or [Text("—", justify="center", style=STYLES["text_dim"])]
+            content = Align.center(Group(*renderables), vertical="middle")
+            return Panel(
+                content,
+                title=f"[b]{title}[/]",
+                border_style=border,
+                box=box.ROUNDED,
+                padding=(0, 1),
+                style=Style(bgcolor=STYLES["card_bg"]),
+            )
+
+        cards: list[RenderableType] = []
+
+        def add_card(panel: Panel) -> None:
+            cards.append(Padding(panel, (0, 0, 1, 0)))
+
+        active_list = [
+            char for char in active_chars if char and char.strip().lower() != "none"
+        ]
+        if not active_list:
+            active_lines = [Text("No active characters", justify="center", style=STYLES["text_dim"])]
+        else:
+            display_names = active_list[:3]
+            if len(active_list) > 3:
+                display_names.append(f"+{len(active_list) - 3} more")
+            active_lines = [
+                Text(name, justify="center", style=f"bold {PALETTE['text']}" if idx == 0 else PALETTE['text'])
+                for idx, name in enumerate(display_names)
+            ]
+        add_card(make_panel("Active Characters", active_lines, border=STYLES["card_characters"]))
+
+        arc_total = max(progress + next_arc, 1)
+        completion_ratio = progress / arc_total
         bar_length = 20
-        filled = int((percentage / 100) * bar_length)
-        bar = "█" * filled + "░" * (bar_length - filled)
+        filled = int(completion_ratio * bar_length)
+        empty = bar_length - filled
+        bar_body = "#" * filled + "-" * empty
 
-        content = f"""[bold cyan]📍 CONTEXT[/]
-─────────────
-Chapter: {chapter}
-Time: {timestamp}
-Location: {location}
-Active: {', '.join(active_chars)}
+        if completion_ratio < 0.33:
+            bar_color = STYLES["progress_low"]
+        elif completion_ratio < 0.66:
+            bar_color = STYLES["progress_mid"]
+        else:
+            bar_color = STYLES["progress_high"]
 
-[bold green]📊 PROGRESS[/]
-─────────────
-{count}/250 responses
-Arc: {bar} {int(percentage)}%
-Next: {next_arc} responses
+        bar_text = Text(f"[{bar_body}]", justify="center", style=bar_color)
+        progress_text = Text(
+            f"{percentage:>5.1f}% complete",
+            justify="center",
+            style=f"bold {PALETTE['text']}",
+        )
+        plural_suffix = "s" if next_arc != 1 else ""
+        next_text = Text(
+            f"{next_arc} more turn{plural_suffix} to next beat",
+            justify="center",
+            style=STYLES["text_dim"],
+        )
+        arc_panel = make_panel(
+            "Arc Progress",
+            [
+                Text(f"{progress}/{arc_total} turns", justify="center", style=f"bold {PALETTE['text']}"),
+                bar_text,
+                progress_text,
+                next_text,
+            ],
+            border=bar_color,
+        )
+        add_card(arc_panel)
 
-[bold magenta]📖 QUICK ACCESS[/]
-─────────────
-Ctrl+↵   Send
-Enter    New Line
-F1-F9    Overlays
-F10      Restart Bridge
-"""
+        momentum_text = Text(
+            f"{count} total responses",
+            justify="center",
+            style=f"bold {PALETTE['text']}",
+        )
+        add_card(make_panel("Story Momentum", [momentum_text], border=STYLES["card_momentum"]))
 
-        self.update(content)
+        self.content_widget.update(Group(*cards))
+
+
 
 
 # =============================================================================
@@ -1092,28 +1418,117 @@ class RPTextArea(TextArea):
 # =============================================================================
 
 class ChatDisplay(ScrollableContainer):
-    """Center panel showing RP conversation history"""
+    """Center panel showing RP conversation history - optimized for performance"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.messages = []
+        self.message_widget: Static | None = None
+        self.messages: list[RenderableType] = []
+        self.max_display_messages = 100  # Prevent unlimited growth
+
+    def compose(self) -> ComposeResult:
+        """Compose the chat display"""
+        self.message_widget = Static(Group(), id="message-content")
+        yield self.message_widget
 
     def add_message(self, sender: str, content: str):
-        """Add a message to chat history"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        """Add a message to chat history with optimized rendering"""
+        if not self.message_widget:
+            return
 
-        if sender == "You":
-            message = f"[dim]{timestamp}[/] [bold cyan]👤 You:[/]\n{content}\n"
+        sender_key = sender.lower()
+        if sender_key == "system":
+            body_text = Text.from_markup(content, justify="left")
         else:
-            message = f"[dim]{timestamp}[/] [bold green]🤖 Claude:[/]\n{content}\n"
+            body_text = Text(content, justify="left")
 
-        self.messages.append(message)
+        style_map = {
+            "you": ("You", STYLES["message_you_text"], Style(bgcolor=STYLES["message_you_bg"])),
+            "system": ("System", STYLES["message_system_text"], Style(bgcolor=STYLES["message_system_bg"])),
+            "claude": ("DM", STYLES["message_dm_text"], Style(bgcolor=STYLES["message_dm_bg"])),
+        }
+        label, border, panel_style = style_map.get(
+            sender_key, (sender or "DM", STYLES["message_dm_text"], Style(bgcolor=STYLES["message_dm_bg"]))
+        )
 
-        # Create new static with all messages
-        self.mount(Static(f"\n{'─' * 60}\n".join(self.messages)))
+        bubble = Panel(
+            body_text,
+            title=f"[b]{label}[/]",
+            border_style=border,
+            box=box.ROUNDED,
+            padding=(0, 1),
+            style=panel_style,
+        )
 
-        # Auto-scroll to bottom
-        self.scroll_end(animate=False)
+        if sender_key == "you":
+            aligned: RenderableType = Align.right(bubble)
+        elif sender_key == "system":
+            aligned = Align.center(bubble)
+        else:
+            aligned = Align.left(bubble)
+
+        padded = Padding(aligned, (0, 1, 1, 1))
+        self.messages.append(padded)
+
+        if len(self.messages) > self.max_display_messages:
+            self.messages = self.messages[-self.max_display_messages:]
+
+        self.message_widget.update(Group(*self.messages))
+
+        def scroll_bottom():
+            self.scroll_end(animate=False)
+
+        self.call_later(scroll_bottom)
+
+
+# =============================================================================
+# APP HEADER
+# =============================================================================
+
+class AppHeader(Static):
+    """Compact banner showing RP title and quick hints."""
+
+    def __init__(self, rp_dir: Path, **kwargs):
+        super().__init__(**kwargs)
+        self.rp_dir = rp_dir
+
+    def on_mount(self) -> None:
+        self.refresh_header()
+        self.set_interval(15.0, self.refresh_header)
+
+    def refresh_header(self) -> None:
+        chapter, timestamp, location = get_chapter_info(self.rp_dir / "state" / "current_state.md")
+        renderables: list[RenderableType] = []
+
+        location_display = location if location and location != "Unknown" else ""
+        timestamp_display = timestamp if timestamp and timestamp != "Unknown" else ""
+
+        if location_display or timestamp_display:
+            top_row = Table.grid(expand=True, padding=(0, 0))
+            top_row.pad_edge = False
+            top_row.add_column()
+            top_row.add_column(justify="right")
+            top_row.add_row(
+                Text(location_display, style=f"bold {PALETTE['accent']}") if location_display else Text(""),
+                Text(timestamp_display, style=f"bold {PALETTE['accent']}") if timestamp_display else Text(""),
+            )
+            renderables.append(top_row)
+
+        title = Text(self.rp_dir.name, style=f"bold {PALETTE['surface']}")
+        if chapter and chapter != "Unknown":
+            title.append("  •  ")
+            title.append(chapter, style=f"bold {PALETTE['warning']}")
+
+        hint_text = Text("F1 Help | Ctrl+T Theme | Ctrl+Q Quit", style=STYLES["text_dim"])
+
+        bottom_row = Table.grid(expand=True, padding=(0, 0))
+        bottom_row.pad_edge = False
+        bottom_row.add_column()
+        bottom_row.add_column(justify="right")
+        bottom_row.add_row(title, hint_text)
+        renderables.append(bottom_row)
+
+        self.update(Group(*renderables))
 
 
 # =============================================================================
@@ -1123,154 +1538,400 @@ class ChatDisplay(ScrollableContainer):
 class RPClientApp(App):
     """Main RP Client TUI Application"""
 
-    CSS = """
-    Screen {
-        background: $surface;
-    }
+    CSS = dedent(
+        f"""
+/* ========================================
+   GLOBAL STYLES
+   ======================================== */
+/* Spacing system:
+   - Standard padding: 1 2 (vertical horizontal)
+   - Compact padding: 0 1
+   - Large padding: 2 3
+   - Margins: 0 1 for buttons, 1 0 for switches
+*/
 
-    #main-container {
-        layout: horizontal;
-        height: 1fr;
-    }
+Screen {{
+    background: {PALETTE['surface']};
+    color: {PALETTE['text']};
+}}
 
-    #context-panel {
-        width: 30;
-        background: $panel;
-        padding: 1;
-        border-right: solid $primary;
-    }
 
-    #chat-panel {
-        width: 1fr;
-        padding: 1;
-    }
+/* ========================================
+   LAYOUT & CONTAINERS
+   ======================================== */
+#top-tabs {{
+    dock: top;
+    background: {PALETTE['primary']};
+    border-bottom: solid {PALETTE['border']};
+    height: 3;
+    padding: 0;
+}}
 
-    #input-container {
-        height: 10;
-        background: $panel;
-        padding: 1;
-        border-top: solid $primary;
-    }
+#top-tabs Tab {{
+    background: {PALETTE['primary']};
+    color: {PALETTE['surface']};
+    border: none;
+    padding: 0 2;
+    text-style: none;
+}}
 
-    #input-area {
-        height: 1fr;
-        background: $surface;
-    }
+#top-tabs Tab:hover {{
+    background: {PALETTE['text_muted']};
+    color: {PALETTE['surface']};
+    text-style: bold;
+}}
 
-    #overlay-container {
-        width: 80%;
-        height: 80%;
-        background: $panel;
-        border: thick $primary;
-        padding: 1;
-    }
+#top-tabs Tab.-active {{
+    background: {PALETTE['accent']};
+    color: {PALETTE['surface']};
+    text-style: bold;
+    border-bottom: thick {PALETTE['boost']};
+}}
 
-    #overlay-title {
-        text-style: bold;
-        background: $primary;
-        color: $text;
-        padding: 1;
-    }
+#app-header {{
+    dock: bottom;
+    background: {PALETTE['primary']};
+    color: {PALETTE['surface']};
+    padding: 0 2;
+    height: 2;
+    border-top: solid {PALETTE['border']};
+}}
 
-    #overlay-content {
-        height: 1fr;
-        margin-top: 1;
-    }
+#main-container {{
+    layout: horizontal;
+    height: 1fr;
+}}
 
-    #overlay-footer {
-        text-style: dim;
-        text-align: center;
-        padding-top: 1;
-    }
 
-    #tab-selector {
-        text-align: center;
-        padding: 1 0;
-        text-style: bold;
-    }
+/* ========================================
+   CONTENT PANELS
+   ======================================== */
+#context-panel {{
+    width: 30%;
+    background: {PALETTE['panel']};
+    color: {PALETTE['text']};
+    padding: 1 2;
+    border-right: solid {PALETTE['border']};
+    overflow-y: auto;
+    overflow-x: hidden;
+}}
 
-    #story-content {
-        height: 1fr;
-    }
+#context-panel {{
+    scrollbar-background: {PALETTE['surface']};
+    scrollbar-background-hover: {PALETTE['surface']};
+    scrollbar-color: {PALETTE['accent']};
+    scrollbar-color-hover: {PALETTE['accent']};
+    scrollbar-size: 2 1;
+}}
 
-    #status-message {
-        text-align: center;
-        color: $warning;
-        text-style: bold;
-    }
+#chat-panel {{
+    width: 1fr;
+    padding: 2 3 2 2;
+    background: {PALETTE['surface']};
+    overflow: auto;
+    scrollbar-background: {PALETTE['surface']};
+    scrollbar-background-hover: {PALETTE['surface']};
+    scrollbar-color: {PALETTE['accent']};
+    scrollbar-color-hover: {PALETTE['accent']};
+    scrollbar-size: 2 1;
+}}
 
-    #settings-container {
-        width: 70%;
-        height: 80%;
-        background: $panel;
-        border: thick $primary;
-        padding: 1;
-    }
+#message-content {{
+    width: 1fr;
+    height: auto;
+    color: {PALETTE['text']};
+}}
 
-    #settings-title {
-        text-style: bold;
-        background: $primary;
-        color: $text;
-        padding: 1;
-    }
 
-    #settings-content {
-        height: 1fr;
-        margin-top: 1;
-    }
+/* ========================================
+   INPUT SECTION
+   ======================================== */
+#input-container {{
+    background: {PALETTE['panel']};
+    padding: 1 2;
+    border-top: solid {PALETTE['border']};
+    layout: vertical;
+    height: 10;
+    min-height: 10;
+    max-height: 10;
+}}
 
-    #settings-footer {
-        text-style: dim;
-        text-align: center;
-        padding-top: 1;
-    }
+#input-label {{
+    color: {PALETTE['accent']};
+    text-style: bold;
+    height: 1;
+}}
 
-    .settings-section-title {
-        text-style: bold;
-        color: $accent;
-        margin-bottom: 1;
-    }
+#input-row {{
+    layout: horizontal;
+    align: left middle;
+    padding-right: 1;
+    height: 6;
+}}
 
-    .settings-label {
-        color: $text;
-        margin-top: 1;
-    }
+#input-area {{
+    height: 5;
+    min-height: 5;
+    max-height: 5;
+    width: 1fr;
+    background: {PALETTE['boost']};
+    border: round {PALETTE['border']};
+    padding: 0 1;
+    color: {PALETTE['text']};
+}}
 
-    .settings-info {
-        color: $text-muted;
-        text-style: dim;
-    }
+#input-area:focus {{
+    border: round {PALETTE['accent']};
+    background: {PALETTE['surface']};
+    color: {PALETTE['text']};
+}}
 
-    .settings-hint {
-        color: $accent;
-        text-style: dim;
-        margin-top: 1;
-    }
+#input-controls {{
+    layout: vertical;
+    width: 18;
+    height: auto;
+    align: center top;
+    padding-left: 1;
+}}
 
-    .button-row {
-        layout: horizontal;
-        height: auto;
-        align: center middle;
-        margin-top: 2;
-    }
+#send-button {{
+    width: 1fr;
+    margin-bottom: 1;
+}}
 
-    .button-row Button {
-        margin: 0 1;
-    }
-    """
+#send-hint {{
+    text-align: center;
+    color: {PALETTE['text_muted']};
+}}
+
+#quick-settings-button {{
+    background: {PALETTE['accent']};
+}}
+
+#quick-help-button {{
+    background: {PALETTE['accent']};
+}}
+
+#quick-status-button {{
+    background: {PALETTE['accent']};
+}}
+
+#status-message {{
+    text-align: left;
+    color: {PALETTE['text_muted']};
+    height: 1;
+}}
+
+
+/* ========================================
+   OVERLAYS
+   ======================================== */
+#overlay-container {{
+    width: 100%;
+    height: 100%;
+    background: {PALETTE['panel']};
+    border: round {PALETTE['border']};
+    padding: 0;
+    box-sizing: border-box;
+}}
+
+#overlay-title {{
+    text-style: bold;
+    background: {PALETTE['primary']};
+    color: {PALETTE['surface']};
+    padding: 1 2;
+    dock: top;
+    border-bottom: solid {PALETTE['border']};
+}}
+
+#overlay-content {{
+    height: 1fr;
+    padding: 1 2;
+    background: {PALETTE['panel']};
+    overflow-y: auto;
+    scrollbar-background: {PALETTE['panel']};
+    scrollbar-background-hover: {PALETTE['panel']};
+    scrollbar-color: {PALETTE['accent']};
+    scrollbar-color-hover: {PALETTE['accent']};
+    scrollbar-size: 2 1;
+}}
+
+#overlay-footer {{
+    text-style: dim;
+    text-align: center;
+    padding: 1 2;
+    dock: bottom;
+    background: {PALETTE['boost']};
+    border-top: solid {PALETTE['border']};
+    color: {PALETTE['text_muted']};
+}}
+
+#tab-selector {{
+    text-align: center;
+    padding: 1 2;
+    text-style: bold;
+    color: {PALETTE['text']};
+    background: {PALETTE['boost']};
+    border-bottom: solid {PALETTE['border']};
+    dock: top;
+}}
+
+#story-content {{
+    height: 1fr;
+    color: {PALETTE['text']};
+}}
+
+/* ========================================
+   SETTINGS
+   ======================================== */
+#settings-container {{
+    width: 100%;
+    height: 100%;
+    background: {PALETTE['panel']};
+    border: round {PALETTE['border']};
+    padding: 0;
+    box-sizing: border-box;
+}}
+
+#settings-title {{
+    text-style: bold;
+    background: {PALETTE['primary']};
+    color: {PALETTE['surface']};
+    padding: 1 2;
+    dock: top;
+    border-bottom: solid {PALETTE['border']};
+}}
+
+#settings-content {{
+    height: 1fr;
+    padding: 1 2;
+    background: {PALETTE['panel']};
+    overflow-y: auto;
+    scrollbar-background: {PALETTE['panel']};
+    scrollbar-background-hover: {PALETTE['panel']};
+    scrollbar-color: {PALETTE['accent']};
+    scrollbar-color-hover: {PALETTE['accent']};
+    scrollbar-size: 2 1;
+}}
+
+#settings-footer {{
+    text-style: dim;
+    text-align: center;
+    padding: 1 2;
+    dock: bottom;
+    background: {PALETTE['boost']};
+    border-top: solid {PALETTE['border']};
+    color: {PALETTE['text_muted']};
+}}
+
+.settings-section-title {{
+    text-style: bold;
+    color: {PALETTE['accent']};
+    margin-top: 2;
+    margin-bottom: 1;
+}}
+
+.settings-label {{
+    color: {PALETTE['text']};
+    margin-top: 1;
+}}
+
+.settings-info {{
+    color: {PALETTE['text_muted']};
+    text-style: dim;
+    margin-left: 2;
+}}
+
+.settings-hint {{
+    color: {PALETTE['warning']};
+    text-style: dim;
+    margin-top: 1;
+    margin-left: 2;
+}}
+
+.button-row {{
+    layout: horizontal;
+    align: center middle;
+    height: auto;
+}}
+
+.button-row Button {{
+    margin: 0 1;
+    width: 1fr;
+    height: auto;
+}}
+
+
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
+Button {{
+    margin: 0 1;
+    background: {PALETTE['text_muted']};
+    color: {STYLES['button_text_default']};
+    border: round {PALETTE['border']};
+}}
+
+Button:hover {{
+    background: {PALETTE['primary']};
+    color: {STYLES['button_text_default']};
+    text-style: bold;
+}}
+
+Button.primary {{
+    background: {PALETTE['accent']};
+    color: {STYLES['button_text_primary']};
+    border: round {PALETTE['accent']};
+}}
+
+Button.primary:hover {{
+    background: {PALETTE['warning']};
+    color: {STYLES['button_text_primary']};
+    text-style: bold;
+}}
+
+Button:focus {{
+    text-style: bold;
+    border: round {PALETTE['accent']};
+}}
+
+Button:disabled {{
+    background: {PALETTE['panel']};
+    color: {PALETTE['text_muted']};
+    text-style: dim;
+}}
+
+Input {{
+    background: {PALETTE['boost']};
+    color: {PALETTE['text']};
+    border: round {PALETTE['border']};
+}}
+
+Input:focus {{
+    border: round {PALETTE['accent']};
+    color: {PALETTE['text']};
+}}
+
+Switch {{
+    margin: 1 0;
+}}
+        """
+    )
 
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("ctrl+j", "submit_message", "Send"),  # Ctrl+Enter sends as Ctrl+J
+        Binding("ctrl+t", "cycle_theme", "Theme"),  # Cycle theme with Ctrl+T
         # Overlay actions - F-keys for overlays (reorganized)
         Binding("f1", "show_help", "Help"),
-        Binding("f2", "show_character_sheet", "Character"),  # CHANGED: Was Memory, now combined Character Sheet
-        Binding("f3", "show_story_overview", "Story"),  # CHANGED: Was Arc, now combined Story Overview (Arc+Genome)
-        Binding("f4", "show_entities", "Entities"),  # CHANGED: Moved from F6, groups by type
+        Binding("f2", "show_character_sheet", "Character"),
+        Binding("f3", "show_story_overview", "Story"),
+        Binding("f4", "show_entities", "Entities"),
         Binding("f5", "show_notes", "Notes"),
-        Binding("f6", "show_modules", "Modules"),  # NEW: Module toggles
-        Binding("f7", "show_status", "Status"),  # MOVED: Was F8
-        Binding("f8", "show_settings", "Settings"),  # MOVED: Was F9
+       
+        Binding("f6", "show_modules", "Modules"),
+        Binding("f7", "show_status", "Status"),
+        Binding("f8", "show_settings", "Settings"),
         Binding("f10", "restart_bridge", "Restart Bridge"),
     ]
 
@@ -1287,20 +1948,56 @@ class RPClientApp(App):
         self.file_manager = FileManager(rp_dir)
         self.bridge_restart_callback = bridge_restart_callback
 
+        # Register cleanup on exit (atexit for guaranteed cleanup)
+        import atexit
+        atexit.register(self._cleanup_flags)
+
     def compose(self) -> ComposeResult:
         """Create the UI layout"""
-        yield Header(show_clock=True)
+        # Navigation tabs at the top
+        yield Tabs(
+            Tab("💬 Chat", id="tab-chat"),
+            Tab("🔧 Modules", id="tab-modules"),
+            Tab("⚙️ Settings", id="tab-settings"),
+            Tab("❓ Help", id="tab-help"),
+            Tab("📊 Status", id="tab-status"),
+            id="top-tabs"
+        )
 
         with Container(id="main-container"):
             yield ContextPanel(self.rp_dir, id="context-panel")
             yield ChatDisplay(id="chat-panel")
 
         with Container(id="input-container"):
-            yield Label("✍️ Your Response:", id="input-label")
-            yield RPTextArea(id="input-area")
+            yield Static(">> Your Move", id="input-label")
+            with Horizontal(id="input-row"):
+                yield RPTextArea(id="input-area")
+                with Vertical(id="input-controls"):
+                    yield Button("Send", id="send-button", variant="primary")
+                    yield Static("Ctrl+Enter", id="send-hint")
+
             yield Static("", id="status-message")
 
-        yield Footer()
+        # Footer with location/timestamp info (previously header)
+        yield AppHeader(self.rp_dir, id="app-header")
+
+    def _cleanup_flags(self) -> None:
+        """Clean up flags - called by atexit to ensure cleanup always happens"""
+        try:
+            print("[TUI] Cleaning up flags...")
+            self.tui_active_flag.unlink(missing_ok=True)
+            self.ready_flag.unlink(missing_ok=True)
+            self.done_flag.unlink(missing_ok=True)
+            print("[TUI] Flags cleaned up successfully")
+        except Exception as e:
+            print(f"[TUI] Error cleaning flags: {e}")
+
+    def _signal_handler(self, signum, frame):
+        """Handle interrupt signals (Ctrl+C, terminal close)"""
+        print(f"[TUI] Received signal {signum}, cleaning up...")
+        self._cleanup_flags()
+        import sys
+        sys.exit(0)
 
     def on_mount(self) -> None:
         """Initialize app"""
@@ -1312,7 +2009,9 @@ class RPClientApp(App):
 
         self.query_one(ChatDisplay).add_message(
             "System",
-            "RP Client TUI started. Type your message and press Ctrl+Enter to send (Enter for new line)."
+            f"[bold {PALETTE['primary']}]✨ RP Client TUI Started[/]\n"
+            f"[{STYLES['text_dim']}]Type your message below and press [bold {STYLES['text_emphasis']}]Ctrl+Enter[/] to send.\n"
+            f"Press [bold {STYLES['text_emphasis']}]F1[/] for help or browse the F-key overlays above.[/]"
         )
 
         # Watch for response file
@@ -1320,23 +2019,20 @@ class RPClientApp(App):
 
     def on_unmount(self) -> None:
         """Cleanup when app is shutting down"""
+        print("[TUI] on_unmount() called")
         # Remove TUI active flag (signals bridge to shut down)
-        try:
-            self.tui_active_flag.unlink(missing_ok=True)
-        except Exception as e:
-            print(f"Warning: Could not remove TUI active flag: {e}")
+        self._cleanup_flags()
+        print("[TUI] on_unmount() complete")
 
     def action_quit(self) -> None:
         """Override quit to ensure cleanup"""
+        print("[TUI] action_quit() called")
         # Cleanup flags before quitting
-        try:
-            self.tui_active_flag.unlink(missing_ok=True)
-            self.ready_flag.unlink(missing_ok=True)
-            self.done_flag.unlink(missing_ok=True)
-        except Exception:
-            pass
+        self._cleanup_flags()
+        print("[TUI] Calling parent quit...")
         # Call parent quit
         super().action_quit()
+        print("[TUI] Parent quit returned")
 
     def action_submit_message(self) -> None:
         """Handle Ctrl+J (Ctrl+Enter) - check if TextArea is focused first"""
@@ -1351,6 +2047,7 @@ class RPClientApp(App):
         message = input_area.text.strip()
 
         if not message:
+            self.show_status(f"[{STYLES['text_dim']}]Message is empty[/]")
             return
 
         if self.waiting_for_response:
@@ -1364,6 +2061,7 @@ class RPClientApp(App):
         try:
             self.file_manager.write_ipc_input(message, self.state_dir)
             self.ready_flag.touch()
+            self.show_status("📤 Message sent...")
         except Exception as e:
             self.show_status(f"❌ Error writing input: {e}")
             return
@@ -1374,6 +2072,26 @@ class RPClientApp(App):
         # Set waiting state
         self.waiting_for_response = True
         self.show_status("⏳ Waiting for Claude...")
+
+        # Update status after 1 second
+        self.set_timer(1.0, lambda: self.show_status("⏳ Processing...") if self.waiting_for_response else None)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "send-button":
+            self.action_send_message()
+
+    def on_tabs_tab_activated(self, event: Tabs.TabActivated) -> None:
+        """Handle tab clicks"""
+        tab_id = event.tab.id
+        if tab_id == "tab-modules":
+            self.action_show_modules_tab()
+        elif tab_id == "tab-settings":
+            self.action_show_settings()
+        elif tab_id == "tab-help":
+            self.action_show_help()
+        elif tab_id == "tab-status":
+            self.action_show_status()
+        # tab-chat is the default view, no action needed
 
     def check_for_response(self) -> None:
         """Check if Claude has responded"""
@@ -1406,8 +2124,22 @@ class RPClientApp(App):
             self.set_timer(2.0, lambda: self.show_status(""))
 
     def show_status(self, message: str) -> None:
-        """Show status message"""
-        self.query_one("#status-message", Static).update(message)
+        """Show status message with formatting"""
+        if not message:
+            self.query_one("#status-message", Static).update("")
+            return
+
+        # Add visual styling to status messages using palette
+        if "❌" in message or "Error" in message:
+            styled = f"[bold {STYLES['status_error']}]{message}[/]"
+        elif "✅" in message or "success" in message.lower():
+            styled = f"[bold {STYLES['status_success']}]{message}[/]"
+        elif "⏳" in message or "Waiting" in message:
+            styled = f"[bold {STYLES['status_waiting']}]{message}[/]"
+        else:
+            styled = f"[{STYLES['status_info']}]{message}[/]"
+
+        self.query_one("#status-message", Static).update(styled)
 
     def _dismiss_current_overlay(self) -> None:
         """Dismiss any currently open overlay before showing new one"""
@@ -1441,6 +2173,11 @@ class RPClientApp(App):
         self._dismiss_current_overlay()
         self.push_screen(ModuleTogglesOverlay(self.rp_dir))
 
+    def action_show_modules_tab(self) -> None:
+        """Show modules tab screen"""
+        self._dismiss_current_overlay()
+        self.push_screen(ModulesTabScreen(self.rp_dir))
+
     def action_show_status(self) -> None:
         """Show status overlay (F7)"""
         self._dismiss_current_overlay()
@@ -1463,36 +2200,67 @@ class RPClientApp(App):
         else:
             self.notify("⚠️ Bridge restart not available", severity="warning", timeout=5)
 
+    def action_cycle_theme(self) -> None:
+        """Cycle through available themes"""
+        available_themes = [
+            "dark", "light", "nord", "dracula", "solarized-dark", "solarized-light", "monokai"
+        ]
+
+        try:
+            current_theme = self.theme
+            if current_theme in available_themes:
+                current_idx = available_themes.index(current_theme)
+                next_theme = available_themes[(current_idx + 1) % len(available_themes)]
+            else:
+                next_theme = available_themes[0]
+
+            self.theme = next_theme
+            self.notify(f"🎨 Theme changed to: {next_theme}", severity="information", timeout=2)
+        except Exception as e:
+            self.notify(f"⚠️ Theme error: {e}", severity="warning", timeout=5)
+
     def action_show_help(self) -> None:
         """Show help overlay"""
-        help_text = """# Keyboard Shortcuts
+        help_text = """# Keyboard Shortcuts & Controls
 
 ## Main Controls
 - **Ctrl+Enter** - Send message to Claude Code
 - **Enter** - New line in message (works naturally)
 - **Ctrl+Q** - Quit application
+- **Ctrl+T** - Cycle through themes 🎨
 - **F1** - Show this help
 
-## Quick Access Overlays
-Use the **F-keys** to open overlays:
-- **F1** - Help
-- **F2** - Character Sheet ({{user}} memory + character info)
+## Quick Access Overlays (F-keys)
+- **F2** - Character Sheet (memory + character info)
 - **F3** - Story Overview (Arc + Genome with tabs)
 - **F4** - Entities (grouped by type)
 - **F5** - Scene Notes
-- **F6** - Module Toggles (optional features)
-- **F7** - System Status
-- **F8** - Settings (API configuration)
-- **F10** - Restart Bridge (use after changing settings)
+- **F6** - Module Toggles (features & automation)
+- **F7** - System Status (progress & activity)
+- **F8** - Settings (API keys & configuration)
+- **F10** - Restart Bridge (after config changes)
 
 ## In Overlays
 - **ESC** - Close overlay
-- **↑/↓ or PgUp/PgDn** - Scroll
+- **Tab** - Switch between tabs (in tabbed overlays)
+- **↑/↓ or PgUp/PgDn** - Scroll content
+- **Number keys** - Switch tabs (1=Arc, 2=Genome in F3)
 
-## Text Input
-All normal keys work - just type!
-Multi-line messages work naturally - just press Enter for new lines.
-Press Ctrl+Enter when you're ready to send!
+## Layout Guide
+- **Left Panel**: RP time, location, active characters, arc progress
+- **Main Area**: Chat display (DM responses and your messages)
+- **Bottom**: Your response input area
+- **Footer**: Quick key reference
+
+## Writing Tips
+- Type naturally - Enter adds new lines
+- Multi-line messages supported
+- Press Ctrl+Enter when ready to send
+- Use F1-F8 while writing to reference info
+
+## Available Themes
+Press **Ctrl+T** to cycle:
+dark, light, nord, dracula, solarized-dark, solarized-light, monokai
 """
 
         class HelpOverlay(ModalScreen):

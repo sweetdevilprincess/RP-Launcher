@@ -1,0 +1,38 @@
+{
+  "bundles": [
+    {
+      "id": "tier1_core",
+      "label": "TIER_1: CORE RP FILES",
+      "trigger": {"type": "always"},
+      "entries": [
+        {"type": "path", "value": "AUTHOR'S_NOTES.md", "base": "rp"},
+        {"type": "path", "value": "STORY_GENOME.md", "base": "rp"},
+        {"type": "path", "value": "NAMING_CONVENTIONS.md", "base": "rp"},
+        {"type": "path", "value": "characters/{{user}}.md", "base": "rp"},
+        {"type": "main_character"}
+      ]
+    },
+    {
+      "id": "tier2_guidelines",
+      "label": "TIER_2: GUIDELINES",
+      "trigger": {"type": "every_n_responses", "interval": 4},
+      "entries": [
+        {"type": "path", "value": "guidelines/Timing.txt", "base": "config"},
+        {"type": "path", "value": "guidelines/Writing_Style_Guide.md", "base": "config"},
+        {"type": "path", "value": "guidelines/NPC_Interaction_Rules.md", "base": "config"},
+        {"type": "path", "value": "guidelines/POV_and_Writing_Checklist.md", "base": "config"},
+        {"type": "path", "value": "guidelines/Time_Tracking_Guide.md", "base": "config"},
+        {"type": "path", "value": "guidelines/story_guidelines.md", "base": "config"},
+        {"type": "rp_overview"}
+      ]
+    },
+    {
+      "id": "tier3_triggered",
+      "label": "TIER_3: TRIGGERED FILES",
+      "trigger": {"type": "triggered"},
+      "entries": [
+        {"type": "triggered_paths"}
+      ]
+    }
+  ]
+}

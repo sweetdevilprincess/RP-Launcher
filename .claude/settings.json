@@ -48,8 +48,6 @@
     "UserPromptSubmit": "# Check: Have I read CLAUDE.md this session? Is TodoWrite list current?"
   },
 
-  "mcpServers": {},
-
   "settingSources": [
     "project"
   ],

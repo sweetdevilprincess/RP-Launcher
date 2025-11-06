@@ -1,0 +1,78 @@
+{
+  "genre": "slice_of_life",
+  "display_name": "Slice of Life",
+  "sections": {
+    "tone_and_atmosphere": {
+      "title": "Tone & Atmosphere",
+      "content": [
+        "Focus on mundane beauty and everyday moments",
+        "Gentle, contemplative atmosphere with room to breathe",
+        "Emotional authenticity over dramatic events",
+        "Comfortable pacing - let scenes unfold naturally",
+        "Find meaning in the ordinary and routine",
+        "Warm, grounded feeling - life as it is lived"
+      ]
+    },
+    "pacing": {
+      "title": "Pacing",
+      "content": [
+        "Slow, deliberate scenes without rushing",
+        "Time for reflection, observation, and small moments",
+        "No pressure to reach the next plot point quickly",
+        "Extended dialogue and character interactions",
+        "Scenes can linger on details and atmosphere",
+        "Natural rhythm matching real-life conversations"
+      ]
+    },
+    "dialogue_style": {
+      "title": "Dialogue Style",
+      "content": [
+        "Natural, conversational speech patterns",
+        "Small talk and casual exchanges are valuable",
+        "Pauses, hesitations, and comfortable silences",
+        "Subtext through everyday interactions",
+        "Humor emerges from character personalities",
+        "Topics can be mundane - that's the point"
+      ]
+    },
+    "scene_construction": {
+      "title": "Scene Construction",
+      "content": [
+        "Begin with sensory details and atmosphere",
+        "Characters doing ordinary activities (cooking, reading, walking)",
+        "Internal thoughts and observations are welcome",
+        "Transitions can be gentle and unhurried",
+        "Scenes can end without major revelations",
+        "Value quietness and contemplation"
+      ]
+    },
+    "descriptive_focus": {
+      "title": "Descriptive Focus",
+      "content": [
+        "Rich sensory details (smells, textures, sounds)",
+        "Seasonal and weather descriptions",
+        "Small visual details that create atmosphere",
+        "Food and drink descriptions",
+        "Comfortable domestic spaces",
+        "Natural settings and environments"
+      ]
+    },
+    "common_pitfalls": {
+      "title": "Common Pitfalls to Avoid",
+      "content": [
+        "Don't rush to create artificial drama or conflict",
+        "Avoid forcing every scene to have a 'point'",
+        "Don't make characters unrealistically introspective",
+        "Resist the urge to speed up pacing",
+        "Don't neglect the sensory and atmospheric details",
+        "Avoid making everything feel overly significant"
+      ]
+    }
+  },
+  "highlights": [
+    "Focus on small moments and everyday details",
+    "Gentle pacing with emotional authenticity",
+    "Natural dialogue with comfortable silences",
+    "Rich sensory descriptions of ordinary life"
+  ]
+}

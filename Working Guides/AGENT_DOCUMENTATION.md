@@ -1,5 +1,8 @@
 # RP Claude Code - Agent Documentation
 
+**Last Updated**: 2025-10-17  
+**Version**: 1.1.0
+
 ## Quick Reference
 This document outlines all agents in the RP Claude Code system, what they do, where they pull data from, and where they send results.
 
@@ -31,7 +34,8 @@ Analyzes Claude's response for scene classification, pacing analysis, and charac
 - Character tracking data
 - Location changes
 - Timeline data
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (background block)
+- Consumed by: OrchestratorModule (`AutomationOrchestratorV2`), PromptBuilder, TUI status panels
 
 ---
 
@@ -49,8 +53,8 @@ Extracts memorable moments from responses to build persistent character memory b
 **Sends To**:
 - Memory records with: title, characters involved, location, type (revelation, conflict, first_meeting, character_moment, relationship_development, plot_event)
 - Significance score (1-10), emotional tone, key quotes
-- Output directory: `memories/{character_name}/`
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (background block)
+- Downstream: FileManagerModule/background tasks convert approved records into `memories/{character}/*.md`; OrchestratorModule references summaries for next prompt
 
 ---
 
@@ -70,8 +74,9 @@ Tracks character interactions and relationship score changes. Monitors relations
 **Sends To**:
 - Relationship changes with: character pair, tier classification
 - Score delta, trigger event, tier transitions
-- Updates: `state/relationships.json`
-- `state/agent_analysis.json` (cache)
+-  `state/relationships.json` (written via FileManagerModule + FSWriteQueueModule) 
+- `state/agent_analysis.json` (background block)
+- Downstream: OrchestratorModule (relationship context), TUI dashboard, SessionManager metadata
 
 ---
 
@@ -91,8 +96,9 @@ Detects new plot threads, tracks mentions of existing threads, and identifies re
 - New threads: ID, title, priority (high/medium/low), time sensitivity, characters
 - Mentioned threads: existing thread updates
 - Resolved threads: closure information
-- Updates: `state/plot_threads_master.md`
-- `state/agent_analysis.json` (cache)
+-  `state/plot_threads_master.md` (written via FileManagerModule + FSWriteQueueModule) 
+- `state/agent_analysis.json` (background block)
+- Downstream: OrchestratorModule (thread summaries), PromptBuilder, TUI thread view
 
 ---
 
@@ -111,8 +117,9 @@ Extracts world-building facts from responses including setting details, geograph
 **Sends To**:
 - Facts with: category (setting, locations, organizations, cultural, geography, items, history)
 - Subject, fact statement, confidence level (high/medium/low)
-- Updates: `state/knowledge_base.md`
-- `state/agent_analysis.json` (cache)
+-  `state/knowledge_base.md` (written via FileManagerModule + FSWriteQueueModule) 
+- `state/agent_analysis.json` (background block)
+- Downstream: OrchestratorModule (world context), Contradiction Detection agent, TUI lore panels
 
 ---
 
@@ -132,7 +139,8 @@ Quality assurance agent that fact-checks new responses against established canon
 **Sends To**:
 - Contradictions with: category, subject, established fact, new claim, severity (minor/moderate/major)
 - Verification count
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (background block)
+- Downstream: OrchestratorModule (warn future prompts), TUI Bridge alerts, manual QA review
 
 ---
 
@@ -157,7 +165,8 @@ Quickly identifies entities mentioned in user's message. Classifies them into ti
 - Tier 3 count (entities to skip)
 - Relevant locations
 - New entities requiring cards
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (immediate block)
+- Consumed by: OrchestratorModule (tiered loading), Fact & Memory Extraction agents, PromptBuilder
 
 ---
 
@@ -175,7 +184,8 @@ Extracts 5 key facts from Tier 2 entity cards (mentioned but absent). Optimizes 
 **Sends To**:
 - For each entity: 5 most important facts (one sentence each)
 - Structured format: `{"entities": {"EntityName": {"facts": [...]}}}`
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (immediate block)
+- Consumed by: PromptBuilder (Tier 2 summaries), Claude prompt context, OrchestratorModule
 
 ---
 
@@ -194,7 +204,8 @@ Extracts 2-5 most relevant memories per scene participant from their memory bank
 **Sends To**:
 - For each character: 2-5 relevant memories with ID, title, when/where, significance
 - Prioritized by: JUST HAPPENED > FOUNDATIONAL > RELEVANT TO TOPIC
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (immediate block)
+- Consumed by: PromptBuilder (character context paragraphs), OrchestratorModule (memory recaps)
 
 ---
 
@@ -214,7 +225,8 @@ Extracts 2-5 most relevant plot threads from master file for current conversatio
 - Loaded threads (2-5 most relevant): ID, title, priority, last mentioned, countdown
 - Monitored threads (tracked but not loaded)
 - Prioritized by: CRITICAL > HIGH > MEDIUM > LOW
-- `state/agent_analysis.json` (cache)
+- `state/agent_analysis.json` (immediate block)
+- Consumed by: PromptBuilder (active thread recap), OrchestratorModule, TUI thread panel
 
 ---
 
@@ -235,11 +247,11 @@ All agent results are cached to `state/agent_analysis.json` during each cycle. T
 
 ### Write Queue Integration
 
-All agents write to files through the **FSWriteQueue** system (debounced 500ms per file):
+All agents write to files through the **FSWriteQueueModule** system (debounced 500ms per file):
 
 - Agent writes are **not immediate** - they're queued
 - Multiple agents can write to the same file in parallel
-- FSWriteQueue batches them into a **single disk write**
+- **FSWriteQueueModule** batches them into a **single disk write**
 - Write happens 500ms after the last write to that file
 
 **Example**:

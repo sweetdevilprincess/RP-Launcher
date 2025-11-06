@@ -92,6 +92,8 @@ if sys.platform == 'win32' and not sys.stdout:
 from src.rp_client_tui import RPClientApp
 from src.update_checker import check_for_updates
 from src.version import get_current_version, is_semantic_version
+from src.initialize_rp import RPInitializer
+import shutil
 
 
 # Global bridge process tracker
@@ -237,11 +239,21 @@ def find_rp_folders(base_dir):
     return rp_folders
 
 
-def select_rp_folder(rp_folders):
-    """Prompt user to select an RP folder from a list."""
+def select_rp_folder(rp_folders, base_dir):
+    """Prompt user to select an RP folder from a list or create a new one.
+
+    Args:
+        rp_folders: List of existing RP folders
+        base_dir: Base directory where RPs are stored
+
+    Returns:
+        Path to selected RP folder, or None if user cancelled
+    """
     print("\nAvailable RP folders:")
     for i, folder in enumerate(rp_folders, 1):
         print(f"  {i}. {folder.name}")
+
+    print(f"  {len(rp_folders) + 1}. ➕ Create new RP")
 
     while True:
         try:
@@ -249,8 +261,11 @@ def select_rp_folder(rp_folders):
             idx = int(choice) - 1
             if 0 <= idx < len(rp_folders):
                 return rp_folders[idx]
+            elif idx == len(rp_folders):
+                # Create new RP
+                return create_new_rp(base_dir)
             else:
-                print(f"Invalid choice. Please enter a number between 1 and {len(rp_folders)}.")
+                print(f"Invalid choice. Please enter a number between 1 and {len(rp_folders) + 1}.")
         except (ValueError, KeyboardInterrupt):
             print("\nExiting...")
             sys.exit(0)
@@ -304,6 +319,177 @@ def check_and_display_updates(config: dict) -> None:
     except Exception:
         # Don't let update check failures block the launcher
         pass
+
+
+def copy_template(template_name: str, dest_dir: Path, rp_name: str) -> bool:
+    """Copy template files from starter pack to destination.
+
+    Args:
+        template_name: Name of template (e.g., 'minimal')
+        dest_dir: Destination RP directory
+        rp_name: Name of the RP (for renaming RP_NAME.md)
+
+    Returns:
+        True if template was copied, False if not found
+    """
+    base_dir = Path(__file__).parent
+    template_dir = base_dir / "setup" / "templates" / "starter_packs" / template_name
+
+    if not template_dir.exists():
+        return False
+
+    print(f"📦 Using template: {template_name}")
+    print(f"   Copying from: {template_dir}")
+    print()
+
+    # Create destination if it doesn't exist
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy all template files and directories
+    copied_count = 0
+    for item in template_dir.iterdir():
+        # Skip README.md from template (it's template documentation)
+        if item.name == "README.md":
+            continue
+
+        dest_item = dest_dir / item.name
+
+        # Handle RP_NAME.md renaming
+        if item.name == "RP_NAME.md":
+            dest_item = dest_dir / f"{rp_name}.md"
+
+        try:
+            if item.is_file():
+                shutil.copy2(item, dest_item)
+                print(f"  ✓ Copied: {item.name}")
+                copied_count += 1
+            elif item.is_dir():
+                shutil.copytree(item, dest_item, dirs_exist_ok=True)
+                print(f"  ✓ Copied directory: {item.name}/")
+                copied_count += 1
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not copy {item.name}: {e}")
+
+    print(f"\n  📄 Copied {copied_count} items from template")
+    print()
+    return True
+
+
+def print_success_message(rp_dir: Path, rp_name: str):
+    """Print success message with next steps."""
+    print()
+    print("=" * 70)
+    print(" " * 24 + "SUCCESS!" + " " * 39)
+    print("=" * 70)
+    print()
+    print(f"✅ RP Created: {rp_name}")
+    print(f"📁 Location: {rp_dir}")
+    print()
+    print("Next steps:")
+    print()
+    print("  1. (Optional) Customize your RP:")
+    print(f"     - Edit: {rp_dir}/AUTHOR'S_NOTES.md")
+    print(f"     - Edit: {rp_dir}/STORY_GENOME.md")
+    print(f"     - Edit: {rp_dir}/characters/{{{{user}}}}.md")
+    print()
+    print("  2. Your new RP will launch next!")
+    print()
+    print("  3. Start writing!")
+    print("     - Type your message")
+    print("     - Press Ctrl+Enter to send")
+    print("     - Get Claude's response")
+    print("     - Continue your story!")
+    print()
+    print("=" * 70)
+    print()
+
+
+def create_new_rp(base_dir: Path) -> Path:
+    """Create a new RP through interactive setup.
+
+    Args:
+        base_dir: Base directory where RPs folder is located
+
+    Returns:
+        Path to the newly created RP
+    """
+    rps_dir = base_dir / "RPs"
+
+    # Print setup banner
+    print("\n" + "=" * 70)
+    print(" " * 20 + "CREATE NEW RP" + " " * 38)
+    print("=" * 70)
+    print()
+
+    # Get RP name
+    while True:
+        rp_name = input("Enter name for your new RP: ").strip()
+        if rp_name:
+            break
+        print("Please enter a valid name.")
+
+    rp_dir = rps_dir / rp_name
+
+    # Check if RP already exists
+    if rp_dir.exists():
+        print(f"\n⚠️  RP folder already exists: {rp_dir}")
+        print("\nOptions:")
+        print(f"  1. Use a different name")
+        print(f"  2. Delete the existing folder")
+        print()
+        response = input("Continue with different name? (y/n): ").strip().lower()
+        if response == 'y':
+            return create_new_rp(base_dir)
+        else:
+            print("Setup cancelled.")
+            return None
+
+    # Select template
+    print("\nAvailable templates:")
+    templates = ["minimal", "fantasy_adventure"]
+    for i, template in enumerate(templates, 1):
+        print(f"  {i}. {template}")
+
+    while True:
+        try:
+            choice = input("\nSelect template (enter number): ").strip()
+            idx = int(choice) - 1
+            if 0 <= idx < len(templates):
+                selected_template = templates[idx]
+                break
+            else:
+                print(f"Invalid choice. Please enter a number between 1 and {len(templates)}.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+    print(f"\nCreating RP: {rp_name}")
+    print(f"Location: {rp_dir}")
+    print()
+
+    # Step 1: Initialize directory structure
+    try:
+        initializer = RPInitializer(rp_dir)
+        initializer.initialize(rp_name=rp_name, skip_existing=True)
+    except Exception as e:
+        print(f"❌ Error initializing RP: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+    # Step 2: Copy template files
+    try:
+        template_found = copy_template(selected_template, rp_dir, rp_name)
+        if not template_found:
+            print(f"⚠️  Template not found: {selected_template}")
+            print(f"   Using basic structure instead.")
+            print()
+    except Exception as e:
+        print(f"⚠️  Warning: Could not copy template: {e}")
+
+    # Print success message
+    print_success_message(rp_dir, rp_name)
+
+    return rp_dir
 
 
 def main():
@@ -363,17 +549,30 @@ def main():
 
             if not rp_folders:
                 print("Error: No RP folders found.")
-                print("RP folders must contain a 'state/' subdirectory.")
-                input("\nPress Enter to exit...")
-                sys.exit(1)
-
-            if len(rp_folders) == 1:
+                print()
+                print("Would you like to create a new RP?")
+                response = input("Create new RP? (y/n): ").strip().lower()
+                if response == 'y':
+                    rp_dir = create_new_rp(base_dir)
+                    if not rp_dir:
+                        print("Error: Could not create RP.")
+                        input("\nPress Enter to exit...")
+                        sys.exit(1)
+                else:
+                    print("No RP folders found and no new RP created.")
+                    input("\nPress Enter to exit...")
+                    sys.exit(1)
+            elif len(rp_folders) == 1:
                 # Auto-select if only one folder
                 rp_dir = rp_folders[0]
                 print(f"Auto-selected RP folder: {rp_dir.name}")
             else:
                 # Let user choose
-                rp_dir = select_rp_folder(rp_folders)
+                rp_dir = select_rp_folder(rp_folders, base_dir)
+                if not rp_dir:
+                    print("Error: Could not create or select RP.")
+                    input("\nPress Enter to exit...")
+                    sys.exit(1)
                 print(f"Selected: {rp_dir.name}")
 
         # Register cleanup function
@@ -388,14 +587,18 @@ def main():
         print(f"\nLaunching RP Client TUI for: {rp_dir.name}")
         print("=" * 50)
         app = RPClientApp(rp_dir, bridge_restart_callback=restart_bridge)
+        print("[LAUNCHER] Starting app.run()...")
         app.run()
 
         # If we get here, the app exited normally
+        print("[LAUNCHER] app.run() returned")
         print("\n" + "=" * 50)
         print("RP Client closed.")
 
         # Stop bridge before exiting
+        print("[LAUNCHER] Stopping bridge...")
         stop_bridge(_bridge_process)
+        print("[LAUNCHER] Bridge stopped")
 
         input("\nPress Enter to exit...")
 

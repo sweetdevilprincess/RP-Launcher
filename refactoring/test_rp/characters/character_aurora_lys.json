@@ -1,0 +1,20 @@
+{
+  "name": "Aurora Lys",
+  "type": "character",
+  "basics": {
+    "full_name": "Aurora Lys"
+  },
+  "appearance": {},
+  "personality": {
+    "core_mandate": "Inspire hope through music"
+  },
+  "preferences": {},
+  "abilities": {},
+  "background": {},
+  "metadata": {
+    "tags": [
+      "pilot",
+      "Aurora"
+    ]
+  }
+}

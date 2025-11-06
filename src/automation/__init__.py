@@ -9,17 +9,12 @@ Provides intelligent automation for the RP system:
 - Story arc generation
 - Status file management
 
-Public API:
-    - run_automation() - Main automation orchestration (SDK mode)
-    - run_automation_with_caching() - Automation with prompt caching (API mode)
+Note: Orchestration is now handled through the module system.
+Use module_manager.get('orchestrator') to access the orchestrator.
 """
 
-# Export main orchestration functions
-from src.automation.orchestrator import (
-    run_automation,
-    run_automation_with_caching,
-    AutomationOrchestrator
-)
+# Note: Orchestrator exports removed - use module system instead
+# orchestrator = module_manager.get('orchestrator')
 
 # Export core utilities (for advanced use)
 from src.automation.core import (
@@ -37,10 +32,8 @@ from src.automation.story_generation import StoryGenerator, auto_generate_story_
 from src.automation.status import StatusManager, update_status_file
 
 __all__ = [
-    # Main API
-    'run_automation',
-    'run_automation_with_caching',
-    'AutomationOrchestrator',
+    # Note: Main orchestration now via module system
+    # orchestrator = module_manager.get('orchestrator')
 
     # Core utilities
     'log_to_file',

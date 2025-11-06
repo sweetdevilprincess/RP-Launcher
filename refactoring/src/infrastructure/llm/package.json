@@ -1,0 +1,13 @@
+{
+  "name": "rp-claude-sdk-bridge",
+  "version": "1.0.0",
+  "description": "Node.js bridge for Claude Code SDK integration",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

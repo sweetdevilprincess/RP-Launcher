@@ -1,0 +1,506 @@
+{
+  "template_name": "Fantasy Character",
+  "description": "Comprehensive fantasy character template with genre-specific fields",
+  "extends": "minimal_character_schema.json",
+  "sections": [
+    {
+      "id": "basic_info",
+      "title": "Basic Information",
+      "fields": [
+        {
+          "id": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "help_text": "Your character's name",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "race",
+          "label": "Race/Species",
+          "type": "text",
+          "required": false,
+          "help_text": "Human, Elf, Dwarf, Half-Orc, etc.",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "age",
+          "label": "Age",
+          "type": "text",
+          "required": false,
+          "help_text": "Approximate age - affects experience and perspective",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "class_role",
+          "label": "Class/Role",
+          "type": "text",
+          "required": false,
+          "help_text": "Knight, Mage, Rogue, Ranger, Cleric, Warrior, Bard, etc.",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "gender",
+          "label": "Gender/Pronouns",
+          "type": "text",
+          "required": false,
+          "help_text": "For Claude to use correctly",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "appearance",
+      "title": "Physical Appearance",
+      "fields": [
+        {
+          "id": "height_build",
+          "label": "Height & Build",
+          "type": "text",
+          "required": false,
+          "help_text": "Tall and muscular? Short and wiry? Athletic? Heavyset?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "hair_eyes",
+          "label": "Hair & Eyes",
+          "type": "text",
+          "required": false,
+          "help_text": "Color, style, distinctive features",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "distinguishing_marks",
+          "label": "Distinguishing Marks",
+          "type": "text",
+          "required": false,
+          "help_text": "Scars, tattoos, birthmarks, unusual features?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "typical_clothing",
+          "label": "Typical Clothing/Armor",
+          "type": "text",
+          "required": false,
+          "help_text": "What do you usually wear?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "weapons",
+          "label": "Weapons",
+          "type": "text",
+          "required": false,
+          "help_text": "What do you fight with?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "personality",
+      "title": "Personality & Traits",
+      "fields": [
+        {
+          "id": "personality_type",
+          "label": "Personality Type",
+          "type": "text",
+          "required": false,
+          "help_text": "Bold? Cautious? Witty? Serious? Friendly? Reserved?",
+          "wizard_field": true,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "strengths",
+          "label": "Strengths",
+          "type": "list",
+          "required": false,
+          "help_text": "What are you good at? (Personality strengths, not just combat)",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "weaknesses",
+          "label": "Weaknesses/Flaws",
+          "type": "list",
+          "required": false,
+          "help_text": "What holds you back? Personal challenges or fears",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "quirks",
+          "label": "Quirks/Habits",
+          "type": "text",
+          "required": false,
+          "help_text": "Distinctive behaviors or mannerisms",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "speech_pattern",
+          "label": "Speech Pattern",
+          "type": "text",
+          "required": false,
+          "help_text": "Formal? Casual? Accent? Catchphrases?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "background",
+      "title": "Background & History",
+      "fields": [
+        {
+          "id": "origin",
+          "label": "Where You're From",
+          "type": "text",
+          "required": false,
+          "help_text": "City? Rural? Unknown?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "family",
+          "label": "Family",
+          "type": "text",
+          "required": false,
+          "help_text": "Any living relatives? Significant family history?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "past",
+          "label": "Past",
+          "type": "textarea",
+          "required": false,
+          "help_text": "What led you to this life? Tragic? Fortunate? Mysterious?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "important_relationships",
+          "label": "Important Relationships",
+          "type": "text",
+          "required": false,
+          "help_text": "Anyone from your past still relevant?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "secrets",
+          "label": "Secrets",
+          "type": "text",
+          "required": false,
+          "help_text": "Anything about your past that's hidden?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "title": "Skills & Abilities",
+      "fields": [
+        {
+          "id": "combat_skills",
+          "label": "Combat Skills",
+          "type": "list",
+          "required": false,
+          "help_text": "Swordsmanship? Magic? Archery? Stealth? Hand-to-hand?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "non_combat_skills",
+          "label": "Non-Combat Skills",
+          "type": "list",
+          "required": false,
+          "help_text": "Tracking? Persuasion? Magic knowledge? Lock-picking? Healing?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "special_abilities",
+          "label": "Special Abilities",
+          "type": "text",
+          "required": false,
+          "help_text": "Magic, supernatural power, unique talents?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "limitations",
+          "label": "Limitations",
+          "type": "text",
+          "required": false,
+          "help_text": "What can't you do well? What weaknesses do you have?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "motivations",
+      "title": "Motivations & Goals",
+      "fields": [
+        {
+          "id": "why_adventuring",
+          "label": "Why are you adventuring?",
+          "type": "list",
+          "required": false,
+          "help_text": "Seeking revenge? Looking for glory? Running from something? Helping others?",
+          "wizard_field": false,
+          "markdown_format": "**{label}**\n{list_items}"
+        },
+        {
+          "id": "long_term_goal",
+          "label": "Long-term Goal",
+          "type": "text",
+          "required": false,
+          "help_text": "What do you ultimately want to achieve?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "current_goal",
+          "label": "Current Goal",
+          "type": "text",
+          "required": false,
+          "help_text": "What are you working toward right now?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "what_drives_you",
+          "label": "What Drives You",
+          "type": "text",
+          "required": false,
+          "help_text": "What matters most to you? Honor? Power? Love? Redemption?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "relationships",
+      "title": "Relationships & Connections",
+      "fields": [
+        {
+          "id": "main_companion",
+          "label": "{{char}} - Your Main Companion",
+          "type": "subsection",
+          "required": false,
+          "help_text": "Relationship with the main NPC",
+          "wizard_field": false,
+          "subitems": [
+            "Relationship: (Ally? Friend? Rival? Mentor? Student?)",
+            "History: (How did you meet?)",
+            "Current status: (Trust level, bond strength?)"
+          ],
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "important_npcs",
+          "label": "Important NPCs",
+          "type": "list",
+          "required": false,
+          "help_text": "Other characters you're connected to",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        },
+        {
+          "id": "enemies",
+          "label": "Enemies/Rivals",
+          "type": "list",
+          "required": false,
+          "help_text": "Anyone who opposes you?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:**\n{list_items}"
+        }
+      ]
+    },
+    {
+      "id": "equipment",
+      "title": "Equipment & Resources",
+      "fields": [
+        {
+          "id": "primary_weapon",
+          "label": "Primary Weapon",
+          "type": "text",
+          "required": false,
+          "help_text": "Name and type",
+          "wizard_field": false,
+          "markdown_format": "- Primary: {value}"
+        },
+        {
+          "id": "secondary_weapon",
+          "label": "Secondary Weapon",
+          "type": "text",
+          "required": false,
+          "help_text": "Backup weapon",
+          "wizard_field": false,
+          "markdown_format": "- Secondary: {value}"
+        },
+        {
+          "id": "armor",
+          "label": "Armor",
+          "type": "text",
+          "required": false,
+          "help_text": "What protection do you wear?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "magical_items",
+          "label": "Magical Items",
+          "type": "text",
+          "required": false,
+          "help_text": "Any special possessions?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "supplies",
+          "label": "Supplies",
+          "type": "text",
+          "required": false,
+          "help_text": "Rope, tools, books, etc. you typically carry",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "resources",
+          "label": "Resources",
+          "type": "text",
+          "required": false,
+          "help_text": "Money, contacts, favors you can call in?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "personal_code",
+      "title": "Personal Code & Beliefs",
+      "fields": [
+        {
+          "id": "moral_code",
+          "label": "Moral Code",
+          "type": "text",
+          "required": false,
+          "help_text": "What are your values? What do you stand for?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "religion",
+          "label": "Religion/Spirituality",
+          "type": "text",
+          "required": false,
+          "help_text": "Do you worship gods? Follow a philosophy?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "fears",
+          "label": "Fears",
+          "type": "text",
+          "required": false,
+          "help_text": "What scares you?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "hopes",
+          "label": "Hopes",
+          "type": "text",
+          "required": false,
+          "help_text": "What do you dream about?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "prejudices",
+          "label": "Prejudices",
+          "type": "text",
+          "required": false,
+          "help_text": "Any groups or people you dislike? Why?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "combat_style",
+      "title": "Combat Style",
+      "fields": [
+        {
+          "id": "preferred_approach",
+          "label": "Preferred Combat Approach",
+          "type": "text",
+          "required": false,
+          "help_text": "Direct? Stealthy? Magical? Tactical?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "fighting_style",
+          "label": "Fighting Style",
+          "type": "text",
+          "required": false,
+          "help_text": "Aggressive? Defensive? Balanced?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "combat_weaknesses",
+          "label": "Weaknesses in Combat",
+          "type": "text",
+          "required": false,
+          "help_text": "What tactics work against you?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        },
+        {
+          "id": "special_moves",
+          "label": "Special Moves/Techniques",
+          "type": "text",
+          "required": false,
+          "help_text": "Signature moves or spells?",
+          "wizard_field": false,
+          "markdown_format": "**{label}:** {value}"
+        }
+      ]
+    },
+    {
+      "id": "notes_for_claude",
+      "title": "Notes for Claude",
+      "fields": [
+        {
+          "id": "claude_instructions",
+          "label": "Special Instructions",
+          "type": "list",
+          "required": false,
+          "help_text": "Any special notes about how Claude should play your character",
+          "wizard_field": false,
+          "subitems": [
+            "(How should Claude play your character?)",
+            "(Any specific characteristics to emphasize?)",
+            "(How should they handle your character's decisions?)"
+          ],
+          "markdown_format": "{list_items}"
+        }
+      ]
+    }
+  ]
+}

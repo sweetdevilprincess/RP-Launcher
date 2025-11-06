@@ -1,0 +1,26 @@
+{
+  "name": "Harmonic Resonator",
+  "type": "item",
+  "filename": "[ITEM] Harmonic Resonator.json",
+  "basics": {
+    "category": "Instrument",
+    "origin": "Elysian Alliance Labs",
+    "rarity": "Prototype",
+    "owner": "Aurora Lys"
+  },
+  "attributes": {
+    "function": "Amplifies a pilot’s voice to stabilize harmonic storms",
+    "components": ["Resonance crystal matrix", "Adaptive tone modulator"],
+    "limitations": ["Overheats after prolonged use"]
+  },
+  "usage": {
+    "activation": "Requires the wearer to sync breathing with the device",
+    "side_effects": ["Temporary vocal strain", "Residual harmonic echo"]
+  },
+  "metadata": {
+    "related_characters": ["Aurora Lys"],
+    "related_locations": ["Celestia Observatory"],
+    "related_organizations": ["Elysian Alliance"],
+    "tags": ["equipment", "harmonic", "support"]
+  }
+}

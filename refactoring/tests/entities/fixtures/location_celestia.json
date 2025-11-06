@@ -1,0 +1,40 @@
+{
+  "name": "Celestia Observatory",
+  "type": "location",
+  "filename": "[LOC] Celestia Observatory.json",
+  "basics": {
+    "primary_function": "Harmonic research station",
+    "realm": "Orbit around the Miridian Rift",
+    "affiliation": "Elysian Alliance",
+    "governing_body": "Council of Navigators",
+    "population": "450",
+    "timezone": "Observatory Standard",
+    "climate": "Controlled artificial atmosphere"
+  },
+  "geography": {
+    "description": "A crystalline outpost with concentric observation rings that capture cosmic harmonics.",
+    "terrain": "Zero-g platform",
+    "notable_features": ["Prism Array", "Luminous Archives", "Aurora Docking Ring"],
+    "hazards": ["Unstable harmonic surges"]
+  },
+  "facilities": {
+    "points_of_interest": ["Harmonic Resonance Labs", "Navigator Council Chambers"],
+    "infrastructure": ["Orbital shield lattice", "Harmonic amplifier towers"],
+    "resources": ["Storm frequency datasets", "Resonance crystals"]
+  },
+  "culture": {
+    "customs": ["Dawn chorus signal", "Starlit vigil"],
+    "influences": ["Alliance traditions", "Lyra-9 music guild"],
+    "festivals": ["Miridian Harmonic Convergence"]
+  },
+  "hooks": {
+    "story_hooks": ["Harmonic anomaly threatens the prism array"],
+    "factions": ["Harmonic Defense Corps", "Luminous Archivists"],
+    "resting_points": ["Observation lounge", "Navigator’s promenade"]
+  },
+  "metadata": {
+    "related_characters": ["Aurora Lys"],
+    "related_organizations": ["Elysian Alliance"],
+    "tags": ["observatory", "orbital", "research"]
+  }
+}
